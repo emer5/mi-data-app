@@ -16,7 +16,7 @@ const CreateDomainTeamPage: React.FC = () => {
     const [loadingDomains, setLoadingDomains] = useState(true);
     const [errorDomains, setErrorDomains] = useState<string | null>(null);
 
-    // Lógica para obtener los dominios desde tu API
+    // Lógica para obtener los do
     useEffect(() => {
         const fetchDomains = async () => {
             setLoadingDomains(true);
