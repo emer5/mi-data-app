@@ -1,0 +1,135 @@
+/* src/pages/SelectProductTypePage.css */
+
+.select-product-type .page-description {
+    margin-bottom: 25px;
+    color: #555;
+}
+
+.type-selection-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Espacio entre bloques principales */
+}
+
+.type-block {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #fdfdfd;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Suaviza la selección */
+}
+
+/* Estilo cuando un bloque principal está seleccionado */
+.type-block.selected {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+}
+
+.type-block label.main-type-label {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espacio entre radio, icono y texto */
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    margin-bottom: 10px; /* Espacio antes de la descripción */
+}
+
+.type-block input[type="radio"] {
+    margin-right: 5px; /* Pequeño ajuste si el gap no es suficiente */
+    flex-shrink: 0; /* Evita que el radio se encoja */
+     accent-color: #007bff; /* Cambia el color del radio seleccionado */
+}
+
+.type-icon {
+    /* Estilos para tu icono - ajusta según uses texto o una librería */
+    font-weight: normal;
+    color: #666;
+    /* background-color: #eee; */
+    /* padding: 2px 5px; */
+    /* border-radius: 3px; */
+}
+
+.type-name {
+    flex-grow: 1; /* Ocupa el espacio restante */
+}
+
+.type-description {
+    font-size: 0.95em;
+    color: #555;
+    margin-left: 35px; /* Indentación para alinear con el texto del tipo */
+    margin-top: 0;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+/* Estilos para los subtipos */
+.subtypes {
+    margin-top: 15px;
+    margin-left: 35px; /* Indentación general de subtipos */
+    padding-top: 15px;
+    border-top: 1px dashed #eee; /* Separador visual ligero */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre subtipos */
+}
+
+.subtypes label.subtype-label {
+    display: block; /* O flex si necesitas alinear cosas dentro */
+    font-weight: normal;
+    cursor: pointer;
+    color: #444;
+}
+
+.subtypes input[type="radio"] {
+    margin-right: 8px;
+}
+
+.subtype-description {
+    display: block; /* Para que aparezca debajo */
+    font-size: 0.9em;
+    color: #666;
+    margin-left: 28px; /* Indentación adicional de la descripción */
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+/* Estilos para los botones de acción al final */
+.select-product-type .page-actions {
+    margin-top: 30px;
+    text-align: right;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.select-product-type .page-actions button {
+    padding: 10px 20px; /* Botones un poco más grandes */
+    margin-left: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.select-product-type .page-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.select-product-type .page-actions button.add-new {
+     /* Reutiliza tu estilo 'add-new' o define uno específico */
+     background-color: #007bff;
+     color: white;
+     border: none;
+}
+.select-product-type .page-actions button.add-new:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.select-product-type .page-actions button:not(.add-new) {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #ccc;
+}
+.select-product-type .page-actions button:not(.add-new):hover:not(:disabled) {
+    background-color: #e2e6ea;
+}

@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "outDir": "./dist/", "noImplicitAny": true, "module": "es6",
+      "target": "es5", "jsx": "react-jsx", "allowJs": true,
+      "moduleResolution": "node", "lib": ["dom", "dom.iterable", "esnext"],
+      "skipLibCheck": true, "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true, "strict": false, /* Ajustado a false para simplicidad */
+      "forceConsistentCasingInFileNames": true, "resolveJsonModule": true,
+      "isolatedModules": true, "noEmit": false
+    },
+    "include": ["src/index.tsx"]
+  }
