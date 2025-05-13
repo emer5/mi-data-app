@@ -28,7 +28,6 @@ export interface Product {
     tipo: string;
     identificador_unico?: string | null;
     estado?: string | null;
-    tags?: string | null;
 }
 export interface Contract {
     id_contrato_dato: number;
@@ -179,7 +178,6 @@ const App: React.FC = () => {
                   tipo: productData.tipo,
                   identificador_unico: productData.identificador_unico,
                   estado: productData.estado?.trim() || null,
-                  tags: productData.tags?.trim() || null,
               };
               await apiRequest('add_product', 'POST', dataToSend);
               await fetchData(false); success = true;
