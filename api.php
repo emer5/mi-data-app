@@ -169,8 +169,7 @@ try {
             $tipo = mysqli_real_escape_string($conn, $request_data['tipo']);
             $identificador = mysqli_real_escape_string($conn, $request_data['identificador_unico']);
             $estado = isset($request_data['estado']) && $request_data['estado'] !== '' ? "'" . mysqli_real_escape_string($conn, $request_data['estado']) . "'" : "NULL";
-            $tags = isset($request_data['tags']) && $request_data['tags'] !== '' ? "'" . mysqli_real_escape_string($conn, $request_data['tags']) . "'" : "NULL";
-            $sql = "INSERT INTO ProductoDato (nombre_producto_dato, descripcion_producto_dato, id_dominio_propietario, tipo, identificador_unico, estado, tags) VALUES ('$nombre', $desc, $owner_id, '$tipo', '$identificador', $estado, $tags)";
+            $sql = "INSERT INTO ProductoDato (nombre_producto_dato, descripcion_producto_dato, id_dominio_propietario, tipo, identificador_unico, estado) VALUES ('$nombre', $desc, $owner_id, '$tipo', '$identificador', $estado)";
             if (mysqli_query($conn, $sql)) {
                 $response = ['message' => 'Producto creado', 'id' => mysqli_insert_id($conn)];
                 $status_code = 201;

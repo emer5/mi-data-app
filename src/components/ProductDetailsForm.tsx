@@ -29,7 +29,6 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
     const [ownerDomainId, setOwnerDomainId] = useState<number | ''>('');
     const [status, setStatus] = useState<string>('');
     const [descripcion, setDescripcion] = useState('');
-    const [tags, setTags] = useState<string>(''); // Almacenar como string CSV
 
     // Preseleccionar el primer dominio si existe
     useEffect(() => {
@@ -56,7 +55,6 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
             id_dominio_propietario: Number(ownerDomainId),
             estado: status || null, // Enviar null si no se seleccionó
             descripcion_producto_dato: descripcion,
-            tags: tags.trim() || null, // Enviar null si está vacío
             // El 'tipo' se añadirá en AddProductDetailsPage antes de llamar a onSave
         };
         await onSave(formData); // Llamar a la función save pasada por props
@@ -107,6 +105,7 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
             {/* 4. Status */}
             <div>
                 <label htmlFor="product-status">Estado</label>
+                <small>El estado actual en el ciclo de vida</small>
                 <select
                     id="product-status" value={status}
                     onChange={(e) => setStatus(e.target.value)}
@@ -117,22 +116,22 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
                         <option key={stat} value={stat}>{stat}</option>
                     ))}
                 </select>
-                <small>The current stage in the lifecycle.</small>
             </div>
 
             {/* 5. Archetype (Mostrar tipo seleccionado, no editable aquí) */}
             <div>
-                <label htmlFor="product-archetype">Archetype</label>
+                <label htmlFor="product-archetype">Arquetipo</label>
+                <small>La clasificación de datos de dominio.</small>
                 <input
                     id="product-archetype" type="text" value={productType}
                     readOnly disabled style={{ backgroundColor: '#eee', cursor: 'not-allowed' }}
                 />
-                <small>The classification of domain data.</small>
+          
             </div>
 
             {/* 6. Description */}
             <div>
-                <label htmlFor="product-desc">Description</label>
+                <label htmlFor="product-desc">Descripcion</label>
                 <textarea
                     id="product-desc" value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
@@ -142,25 +141,13 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
                 />
             </div>
 
-            {/* 7. Tags (Implementación simple con CSV) */}
-            <div>
-                 <label htmlFor="product-tags">Tags</label>
-                <input
-                    id="product-tags" type="text" value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                    disabled={isLoading}
-                    placeholder="Add tags separated by commas (e.g., finance, report, monthly)"
-                />
-                <small>Add a tag.</small> {/* Podrías añadir un botón "Add" si quieres una UI más compleja */}
-            </div>
-
             {/* Acciones */}
             <div className="form-actions">
                  <button type="submit" className='add-new' disabled={isLoading || domains.length === 0}>
-                    {isLoading ? 'Saving...' : 'Save Product'}
+                    {isLoading ? 'Saving...' : 'Guardar Producto'}
                 </button>
                 <button type="button" onClick={onCancel} disabled={isLoading}>
-                    Cancel
+                    Cancelar
                 </button>
             </div>
         </form>

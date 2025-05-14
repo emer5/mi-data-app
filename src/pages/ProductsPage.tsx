@@ -36,19 +36,6 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
     const handleGoToSelectType = () => { navigate('/productos/seleccionar-tipo'); };
     const handleEditProduct = (product: Product) => { alert("Edición no implementada."); };
 
-    // Función helper para renderizar tags como badges
-    const renderTags = (tagsString: string | null | undefined) => {
-        if (!tagsString) return null;
-        const tagsArray = tagsString.split(',').map(t => t.trim()).filter(Boolean);
-        if (tagsArray.length === 0) return null;
-        return tagsArray.map((tag, index) => (
-            <span key={index} className="tag-badge">
-                <span className="table-icon">[tg]</span> {/* Icono Tag */}
-                {tag}
-            </span>
-        ));
-    };
-
     // Función helper para icono de producto
     const getProductIcon = (type: string | null | undefined): string => {
         if (!type) return '[?]';
@@ -83,7 +70,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
                                 <th className="col-type">Tipo</th>
                                 <th className="col-status">Estado</th>
                                 <th className="col-output-ports">Puertos de Salida</th>
-                                <th className="col-actions"></th> {/* Cabecera acciones vacía */}
+                                <th className="col-actions">Acciones</th> {/* Cabecera acciones vacía */}
                             </tr>
                         </thead>
                         <tbody>
@@ -125,7 +112,6 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
                                     {/* Acciones */}
                                     <td className="actions-cell">
                                         <div className="actions">
-                                             <button className="consume" onClick={() => onConsume(product)} disabled={loading || domains.length < 2 || domains.filter(d => d.id_dominio !== product.id_dominio_propietario).length === 0} title="Crear Contrato">C</button>
                                              <button className="edit" onClick={() => handleEditProduct(product)} disabled={loading} title="Editar Producto">E</button>
                                              <button className="delete" onClick={() => onDelete(product.id_producto_dato)} disabled={loading} title="Eliminar Producto">X</button>
                                          </div>
