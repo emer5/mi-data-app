@@ -13,6 +13,7 @@ import CreateDomainTeamPage from './pages/CreateDomainTeamPage';
 import AddProductDetailsPage from './pages/AddProductDetailsPage';
 import SelectContractTypePage from './pages/SelectContractTypePage'; // Nueva importación
 import AddContractDetailsPage from './pages/AddContractDetailsPage';   // Nueva importación
+import EditProductPage from './pages/EditProductPage';
 import Navbar from './components/Navbar';
 
 // --- Interfaces (sin cambios respecto a tu última versión) ---
@@ -42,7 +43,14 @@ export interface Contract {
 
 // --- Interfaces para Props ---
 export interface DomainFormProps { initialData: Partial<Domain> | null; onSave: (data: Partial<Domain>) => Promise<void>; onCancel: () => void; isLoading: boolean; }
-export interface ProductDetailsFormProps { productType: string; domains: Domain[]; onSave: (data: Partial<Product>) => Promise<boolean>; onCancel: () => void; isLoading: boolean; }
+export interface ProductDetailsFormProps {
+    productType: string;
+    domains: Domain[];
+    onSave: (data: Partial<Product>, isEditing: boolean) => Promise<boolean>; // Modificado
+    onCancel: () => void;
+    isLoading: boolean;
+    initialData?: Partial<Product> | null; // Ya estaba
+}
 export interface ConsumeProductModalProps { product: Product; domains: Domain[]; contractName: string; contractDescription: string; consumingDomainId: number | ''; onContractNameChange: (value: string) => void; onContractDescriptionChange: (value: string) => void; onConsumingDomainChange: (value: number | '') => void; onCreate: () => Promise<void>; onClose: () => void; isLoading: boolean; }
 
 // --- Configuración API y Helper (sin cambios) ---
@@ -157,26 +165,23 @@ const App: React.FC = () => {
     };
 
     // --- Funciones CRUD Producto (sin cambios) ---
-    const handleSaveProduct = async (productData: Partial<Product>): Promise<boolean> => {
+    const handleAddProduct = async (productData: Partial<Product>): Promise<boolean> => {
          setError(null); let success = false;
+         // ... (tus validaciones para añadir un nuevo producto como estaban) ...
          if (!productData.nombre_producto_dato || !productData.id_dominio_propietario || !productData.tipo || !productData.identificador_unico) {
-             const missing = [
-                 !productData.nombre_producto_dato ? 'Nombre' : '', !productData.id_dominio_propietario ? 'Dominio Propietario' : '',
-                 !productData.tipo ? 'Tipo' : '', !productData.identificador_unico ? 'Identificador' : ''
-             ].filter(Boolean).join(', ');
-             setError(`Faltan campos requeridos: ${missing}.`); return false;
+             // ...
+             setError(`Faltan campos requeridos para nuevo producto.`); return false;
          }
-         if (!noContieneNumeros(productData.nombre_producto_dato) || !noContieneNumeros(productData.descripcion_producto_dato)) {
-             setError("Nombre y descripción del producto no deben contener números."); return false;
-         }
+         // ...
          setLoading(true);
          try {
+              // Asegúrate que dataToSend SÓLO contenga los campos para un nuevo producto
               const dataToSend: Partial<Product> = {
                   nombre_producto_dato: productData.nombre_producto_dato,
                   descripcion_producto_dato: productData.descripcion_producto_dato?.trim() || null,
                   id_dominio_propietario: productData.id_dominio_propietario,
                   tipo: productData.tipo,
-                  identificador_unico: productData.identificador_unico,
+                  identificador_unico: productData.identificador_unico, // Esencial para nuevo
                   estado: productData.estado?.trim() || null,
               };
               await apiRequest('add_product', 'POST', dataToSend);
@@ -187,6 +192,43 @@ const App: React.FC = () => {
           } finally { setLoading(false); }
          return success;
     };
+
+    // NUEVA función para ACTUALIZAR producto
+    const handleUpdateProduct = async (productData: Partial<Product>, isEditing: boolean): Promise<boolean> => {
+        if (!isEditing || !productData.id_producto_dato) {
+            setError("Error: Faltan datos para la actualización del producto.");
+            return false;
+        }
+        setError(null); let success = false;
+        // Validaciones para actualizar (pueden ser diferentes a las de crear)
+        if (!productData.nombre_producto_dato || !productData.id_dominio_propietario) {
+            setError(`Nombre y Dominio Propietario son requeridos para actualizar.`); return false;
+        }
+        if (!noContieneNumeros(productData.nombre_producto_dato) || !noContieneNumeros(productData.descripcion_producto_dato)) {
+            setError("Nombre y descripción del producto no deben contener números."); return false;
+        }
+        setLoading(true);
+        try {
+            // El backend NO debería permitir actualizar 'identificador_unico' ni 'tipo'.
+            // Se envían, pero la lógica de la API debe ignorarlos o validarlos.
+            const dataToSend: Partial<Product> = {
+                id_producto_dato: productData.id_producto_dato, // Esencial para update
+                nombre_producto_dato: productData.nombre_producto_dato,
+                descripcion_producto_dato: productData.descripcion_producto_dato?.trim() || null,
+                id_dominio_propietario: productData.id_dominio_propietario,
+                // tipo: productData.tipo, // NO ACTUALIZAR TIPO
+                // identificador_unico: productData.identificador_unico, // NO ACTUALIZAR IDENTIFICADOR
+                estado: productData.estado?.trim() || null,
+            };
+            await apiRequest('update_product', 'POST', dataToSend); // Usar POST o PUT (PUT es más semántico para update)
+            await fetchData(false); success = true;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Error desconocido al actualizar producto';
+            setError(`Error al actualizar producto: ${errorMsg}`); success = false;
+        } finally { setLoading(false); }
+        return success;
+    };
+
     const handleDeleteProduct = async (id: number): Promise<void> => {
         if (!window.confirm('¿Seguro que quieres eliminar este producto? Se borrarán sus contratos asociados.')) return;
         setError(null); setLoading(true);
@@ -266,7 +308,7 @@ const App: React.FC = () => {
         setProductToConsume(product); setConsumingDomainId(''); setContractName(`Contrato para ${product.nombre_producto_dato}`); setContractDescription(''); setShowConsumeModal(true);
     };
     const handleCloseConsumeModal = () => { setError(null); setShowConsumeModal(false); setProductToConsume(null); };
-    
+
 
     // --- Renderizado ---
     return (
@@ -306,10 +348,22 @@ const App: React.FC = () => {
                     <Route path="/productos/nuevo/detalles" element={
                         <AddProductDetailsPage
                             domains={domains}
-                            onSaveProduct={handleSaveProduct}
+                            onSaveProduct={handleAddProduct}
                             loading={loading}
                         />
                     } />
+
+                    {/* NUEVA RUTA PARA EDITAR PRODUCTO */}
+                <Route path="/productos/editar/:idProducto" element={
+                    <EditProductPage
+                        products={products} // Pasa la lista completa para que encuentre el producto
+                        domains={domains}
+                        onUpdateProduct={handleUpdateProduct} // Nueva función para actualizar
+                        loading={loading}
+                        fetchProducts={() => fetchData(false)} // Para recargar la lista
+                    />
+                } />
+                
                     <Route path="/contratos" element={
                         <ContractsPage 
                             contracts={contracts} 

@@ -144,7 +144,10 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
     };
 
     const handleGoToSelectType = () => { navigate('/productos/seleccionar-tipo'); };
-    const handleEditProduct = (product: Product) => { alert("Edición no implementada."); };
+     const handleEditProductClick = (productToEdit: Product) => {
+        // <<--- 4. USAR navigate --- >>
+        navigate(`/productos/editar/${productToEdit.id_producto_dato}`);
+    };
 
 
     return (
@@ -212,9 +215,8 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
                                     <td><div className="cell-content">-</div></td>
                                     <td className="actions-cell">
                                         <div className="actions">
-                                             <button className="consume" onClick={() => onConsume(product)} disabled={loading || domains.length < 2 || domains.filter(d => d.id_dominio !== product.id_dominio_propietario).length === 0} title="Crear Contrato">C</button>
-                                             <button className="edit" onClick={() => handleEditProduct(product)} disabled={loading} title="Editar Producto">E</button>
-                                             <button className="delete" onClick={() => onDelete(product.id_producto_dato)} disabled={loading} title="Eliminar Producto">X</button>
+                                            <button className="edit" onClick={() => handleEditProductClick(product)} disabled={loading} title="Editar Producto">E</button>
+                                            <button className="delete" onClick={() => onDelete(product.id_producto_dato)} disabled={loading} title="Eliminar Producto">X</button>
                                          </div>
                                     </td>
                                 </tr>

@@ -203,6 +203,62 @@ try {
                 $status_code = 400;
             }
             break;
+        
+        case 'update_product':
+            // Asegurarse de que el ID del producto está presente
+            if (!isset($request_data['id_producto_dato'])) {
+                $response = ['message' => 'ID de producto requerido para actualizar'];
+                $status_code = 400;
+                break;
+            }
+            $id = (int) $request_data['id_producto_dato'];
+
+            // Validaciones (similares a add_product, pero para los campos que permites actualizar)
+            if (
+                empty($request_data['nombre_producto_dato']) ||
+                empty($request_data['id_dominio_propietario']) ||
+                !noContieneNumeros($request_data['nombre_producto_dato']) || 
+                !noContieneNumeros($request_data['descripcion_producto_dato'] ?? '')
+            ) {
+                $response = ['message' => 'Datos inválidos para actualizar (nombre, dueño requeridos y sin números en nombre/desc)'];
+                $status_code = 400;
+                break;
+            }
+
+            $nombre = mysqli_real_escape_string($conn, $request_data['nombre_producto_dato']);
+            $desc_raw = $request_data['descripcion_producto_dato'] ?? null;
+            $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
+            $owner_id = (int) $request_data['id_dominio_propietario'];
+            
+            // Campos que pueden ser nulos o vacíos
+            $estado = isset($request_data['estado']) && $request_data['estado'] !== '' ? "'" . mysqli_real_escape_string($conn, $request_data['estado']) . "'" : "NULL";
+
+            // NO PERMITIR ACTUALIZAR 'tipo' ni 'identificador_unico' desde aquí.
+            // Esos campos deberían ser inmutables después de la creación.
+            // Si se envían en $request_data, simplemente ignóralos en la consulta SQL UPDATE.
+
+            $sql = "UPDATE ProductoDato SET 
+                        nombre_producto_dato = '$nombre', 
+                        descripcion_producto_dato = $desc, 
+                        id_dominio_propietario = $owner_id, 
+                        estado = $estado 
+                    WHERE id_producto_dato = $id";
+
+            if (mysqli_query($conn, $sql)) {
+                if (mysqli_affected_rows($conn) > 0) {
+                    $response = ['message' => 'Producto actualizado'];
+                    $status_code = 200;
+                } else {
+                    // Podría ser que no se actualizó nada porque los datos eran iguales,
+                    // o que el producto no existía.
+                    // Para ser más precisos, podrías hacer un SELECT primero.
+                    $response = ['message' => 'Producto no encontrado o datos sin cambios'];
+                    $status_code = 200; // O 404 si estás seguro que no existe
+                }
+            } else {
+                throw new Exception("Error al actualizar producto: " . mysqli_error($conn));
+            }
+            break;
 
         // == CONTRATOS ==
         case 'get_contracts':
