@@ -174,24 +174,6 @@ form .form-actions button { margin-right: 10px; padding: 10px 15px; min-width: 8
 .status-text.status-unknown,
 .status-text.status-na { color: #374151; background-color: #f3f4f6; border-color: #e5e7eb; }
 
-/* --- Tags --- */
-.tags-cell-content {
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.tag-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background-color: #f3f4f6; /* Fondo gris claro */
-    color: #4b5563; /* Texto gris oscuro */
-    padding: 2px 8px;
-    border-radius: 4px; /* Ligeramente redondeado */
-    font-size: 12px;
-    white-space: nowrap;
-    border: 1px solid #e5e7eb; /* Borde muy sutil */
-}
-.tag-badge .table-icon { font-size: 1em; color: #6b7280; }
 
 /* --- Celda Acciones --- */
 .products-table.data-mesh-table td.actions-cell { text-align: right; }
@@ -228,3 +210,79 @@ form .form-actions button { margin-right: 10px; padding: 10px 15px; min-width: 8
 /* ======================================== */
 /* == FIN ESTILOS TABLA PRODUCTOS DATA MESH == */
 /* ======================================== */
+
+
+
+
+
+
+
+.product-view-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Contenedor para la vista de React Flow */
+.mesh-view-container-rf {
+    width: 100%;
+    height: 600px; /* Ajusta la altura según necesites */
+    border: 1px solid #ddd;
+    margin-top: 20px;
+    background-color: #fcfcfc; /* Fondo claro para el área de React Flow */
+}
+
+/* Estilos para el contenido de nuestro nodo personalizado */
+/* La clase principal del nodo será algo como .react-flow__node-productNode */
+/* Nosotros estilizaremos el contenido dentro de él con .mesh-node-rf-content */
+.mesh-node-rf-content {
+    padding: 10px 15px; /* Padding interno del nodo */
+    border-radius: 5px; /* Bordes redondeados para el contenido, el borde principal lo pone React Flow */
+    /* background-color: #fff; Ya no es necesario si el nodo de RF lo maneja */
+    /* min-width: 180px; El ancho se gestiona mejor por el nodo de RF */
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* Espacio entre líneas de texto dentro del nodo */
+}
+
+/* Reutiliza o ajusta tus estilos de texto del nodo */
+.mesh-node-rf-content .mesh-node-archetype {
+    font-size: 0.85em;
+    color: #555;
+    font-weight: bold;
+    /* border-bottom: 1px dashed #eee;
+    padding-bottom: 4px;
+    margin-bottom: 4px; */
+}
+
+.mesh-node-rf-content .mesh-node-name {
+    font-size: 1em;
+    font-weight: bold;
+    color: #222;
+    word-break: break-word;
+}
+
+.mesh-node-rf-content .mesh-node-domain {
+    font-size: 0.8em;
+    color: #666;
+}
+
+/* Estilos por defecto para los nodos de React Flow (puedes sobreescribirlos) */
+/* La clase '.react-flow__node-productNode' se genera si tu 'type' es 'productNode' */
+.react-flow__node-productNode {
+    background-color: #f8f9fa !important; /* Color de fondo del nodo */
+    border: 1px solid #007bff !important; /* Borde del nodo */
+    border-radius: 8px !important;
+    min-width: 220px !important; /* Ancho mínimo del nodo */
+    max-width: 280px !important; /* Ancho máximo */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08) !important;
+    padding: 0 !important; /* Quitamos el padding por defecto para que nuestro contenido lo maneje */
+}
+
+/* Ajustar el handle (punto de conexión) si lo usaras explícitamente */
+/*
+.react-flow__handle {
+    width: 8px !important;
+    height: 8px !important;
+    background-color: #555 !important;
+}
+*/

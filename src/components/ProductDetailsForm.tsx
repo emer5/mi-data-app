@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'; // Necesitas instalar uuid: npm install uui
 import { Domain, Product } from '../index'; // Ajusta ruta
 
 // Definir los posibles estados
-const STATUS_OPTIONS = ['Development', 'Testing', 'Production', 'Deprecated', 'Archived'];
+const STATUS_OPTIONS = ['Desarrollo','Pruebas','Producción','Obsoleto','Archivado'];
 
 interface ProductDetailsFormProps {
     productType: string; // Tipo recibido de la página anterior
@@ -70,7 +70,7 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
                     id="product-name" type="text" value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                     maxLength={50} required disabled={isLoading}
-                    placeholder="The display name of this data product"
+                    placeholder="El nombre del Producto de datos"
                 />
             </div>
 
@@ -86,7 +86,7 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
 
             {/* 3. Owner Domain */}
             <div>
-                <label htmlFor="product-owner">Dominio<span style={{color:'red'}}>*Required</span></label>
+                <label htmlFor="product-owner">Dominio<span style={{color:'red'}}>*Requerido</span></label>
                 <select
                     id="product-owner" value={ownerDomainId}
                     onChange={(e) => setOwnerDomainId(Number(e.target.value))}
