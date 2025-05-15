@@ -9,7 +9,6 @@ import DomainsPage from './pages/DomainsPage';
 import ProductsPage from './pages/ProductsPage';
 import ContractsPage from './pages/ContractsPage';
 import SelectProductTypePage from './pages/SelectProductTypePage';
-import CreateDomainTeamPage from './pages/CreateDomainTeamPage';
 import AddProductDetailsPage from './pages/AddProductDetailsPage';
 import SelectContractTypePage from './pages/SelectContractTypePage'; // Nueva importación
 import AddContractDetailsPage from './pages/AddContractDetailsPage';   // Nueva importación
@@ -17,7 +16,15 @@ import EditProductPage from './pages/EditProductPage';
 import Navbar from './components/Navbar';
 
 // --- Interfaces (sin cambios respecto a tu última versión) ---
-export interface Domain { id_dominio: number; nombre_dominio: string; descripcion_dominio: string; }
+export interface Domain {
+    id_dominio: number;
+    nombre_dominio: string;
+    descripcion_dominio: string;
+    identificacion_dominio?: string | null; // Nuevo
+    id_dominio_padre?: number | null;       // Nuevo
+    nombre_dominio_padre?: string | null;   // Nuevo (para mostrar en UI, vendrá de un JOIN en PHP)
+    tipo_entidad: 'Dominio' | 'Equipo';     // Nuevo
+}
 export interface Product {
     id_producto_dato: number;
     nombre_producto_dato: string;
@@ -42,7 +49,13 @@ export interface Contract {
 }
 
 // --- Interfaces para Props ---
-export interface DomainFormProps { initialData: Partial<Domain> | null; onSave: (data: Partial<Domain>) => Promise<void>; onCancel: () => void; isLoading: boolean; }
+export interface DomainFormProps {
+    initialData: Partial<Domain> | null;
+    onSave: (data: Partial<Domain>) => Promise<void>;
+    onCancel: () => void;
+    isLoading: boolean;
+    allDomains: Domain[]; // Nuevo: para el dropdown de dominio padre
+}
 export interface ProductDetailsFormProps {
     productType: string;
     domains: Domain[];
@@ -133,26 +146,37 @@ const App: React.FC = () => {
 
     // --- Funciones CRUD Dominio (sin cambios) ---
     const handleSaveDomain = async (domainData: Partial<Domain>): Promise<void> => {
-        setError(null);
-        if (!domainData.nombre_dominio || !domainData.descripcion_dominio) {
-             setError("Nombre y descripción son requeridos."); return;
-        }
-        if (!noContieneNumeros(domainData.nombre_dominio) || !noContieneNumeros(domainData.descripcion_dominio)) {
-             setError("Nombre y descripción no deben contener números."); return;
-        }
-        setLoading(true);
-        try {
-            const dataToSend = { nombre_dominio: domainData.nombre_dominio, descripcion_dominio: domainData.descripcion_dominio };
-            const action = currentDomain?.id_dominio ? 'update_domain' : 'add_domain';
-            const method = currentDomain?.id_dominio ? 'PUT' : 'POST';
-            const payload = currentDomain?.id_dominio ? { ...dataToSend, id_dominio: currentDomain.id_dominio } : dataToSend;
-            
-            await apiRequest(action, method, payload);
-            setShowDomainForm(false); setCurrentDomain(null); await fetchData(false); // No mostrar loading para recargas rápidas
-        } catch (err) {
-             setError(err instanceof Error ? err.message : 'Error al guardar dominio');
-        } finally { setLoading(false); }
-     };
+    setError(null);
+    // Validación básica (puedes expandirla)
+    if (!domainData.nombre_dominio?.trim() || !domainData.descripcion_dominio?.trim() || !domainData.identificacion_dominio?.trim() || !domainData.tipo_entidad) {
+         setError("Nombre, descripción, identificación y tipo son requeridos."); return;
+    }
+    // ... (otras validaciones si son necesarias) ...
+    // if (!noContieneNumeros(domainData.nombre_dominio) /*|| !noContieneNumeros(domainData.descripcion_dominio)*/) {
+    //      setError("Nombre del dominio no debe contener números."); return;
+    // }
+    setLoading(true);
+    try {
+        const dataToSend: Partial<Domain> = {
+            nombre_dominio: domainData.nombre_dominio,
+            descripcion_dominio: domainData.descripcion_dominio,
+            identificacion_dominio: domainData.identificacion_dominio,
+            // CORRECCIÓN AQUÍ:
+            // domainData.id_dominio_padre ya es number | null gracias al Form.
+            id_dominio_padre: domainData.id_dominio_padre,
+            tipo_entidad: domainData.tipo_entidad,
+        };
+
+        const action = currentDomain?.id_dominio ? 'update_domain' : 'add_domain';
+        const method = currentDomain?.id_dominio ? 'PUT' : 'POST';
+        const payload = currentDomain?.id_dominio ? { ...dataToSend, id_dominio: currentDomain.id_dominio } : dataToSend;
+        
+        await apiRequest(action, method, payload);
+        setShowDomainForm(false); setCurrentDomain(null); await fetchData(false);
+    } catch (err) {
+         setError(err instanceof Error ? err.message : 'Error al guardar entidad');
+    } finally { setLoading(false); }
+    };
     const handleDeleteDomain = async (id: number): Promise<void> => {
         if (!window.confirm('¿Seguro que quieres eliminar este dominio? Fallará si tiene productos asociados.')) return;
         setError(null); setLoading(true);
@@ -324,14 +348,15 @@ const App: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/dominios" element={
-                        <DomainsPage
-                            domains={domains} loading={loading} error={error}
-                            onAddNew={handleAddNewDomain} onEdit={handleEditDomain} onDelete={handleDeleteDomain}
-                            showForm={showDomainForm} currentDomain={currentDomain}
-                            onSave={handleSaveDomain} onCancel={handleCancelDomainForm}
-                            DomainFormComponent={DomainForm}
+                    <DomainsPage
+                        domains={domains} // 'domains' del estado de App, que ya se usa para el listado y el form
+                        loading={loading} error={error}
+                        onAddNew={handleAddNewDomain} onEdit={handleEditDomain} onDelete={handleDeleteDomain}
+                        showForm={showDomainForm} currentDomain={currentDomain}
+                        onSave={handleSaveDomain} onCancel={handleCancelDomainForm}
+                        DomainFormComponent={DomainForm} // <--- Pasa el componente DomainForm directamente
                         />
-                     } />
+                    } />
                     <Route path="/productos" element={
                         <ProductsPage
                             products={products} domains={domains} loading={loading} error={error}
@@ -385,8 +410,7 @@ const App: React.FC = () => {
                             />
                         }
                     />
-                     {/* Nueva Ruta para Equipos */}
-                    <Route path="/equipos/nuevo" element={<CreateDomainTeamPage />} /> {/* <<< ESTA ES LA RUTA CLAVE */}
+
 
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
@@ -409,40 +433,163 @@ if (rootElement) {
 else { console.error("FATAL: Elemento #root no encontrado en index.html"); }
 
 // --- Definiciones COMPLETAS de los componentes (sin cambios, como estaban en tu último código) ---
-const DomainForm: React.FC<DomainFormProps> = ({ initialData, onSave, onCancel, isLoading }) => {
+const DomainForm: React.FC<DomainFormProps> = ({ initialData, onSave, onCancel, isLoading, allDomains }) => {
     const [nombre, setNombre] = useState(initialData?.nombre_dominio || '');
     const [descripcion, setDescripcion] = useState(initialData?.descripcion_dominio || '');
-    
+    const [identificacion, setIdentificacion] = useState(initialData?.identificacion_dominio || '');
+    const [idPadre, setIdPadre] = useState<number | ''>(initialData?.id_dominio_padre || '');
+    const [tipo, setTipo] = useState<'Dominio' | 'Equipo'>(initialData?.tipo_entidad || 'Dominio');
+
     useEffect(() => {
         setNombre(initialData?.nombre_dominio || '');
         setDescripcion(initialData?.descripcion_dominio || '');
+        setIdentificacion(initialData?.identificacion_dominio || '');
+        setIdPadre(initialData?.id_dominio_padre ?? ''); // Asegurar que sea string vacío si es null/undefined
+        setTipo(initialData?.tipo_entidad || 'Dominio');
     }, [initialData]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Asegurar que se envía id_dominio si es una edición
-        const dataToSave: Partial<Domain> = { nombre_dominio: nombre, descripcion_dominio: descripcion };
+        const dataToSave: Partial<Domain> = {
+            nombre_dominio: nombre,
+            descripcion_dominio: descripcion,
+            identificacion_dominio: identificacion,
+            id_dominio_padre: idPadre === '' ? null : Number(idPadre),
+            tipo_entidad: tipo,
+        };
         if (initialData?.id_dominio) {
             dataToSave.id_dominio = initialData.id_dominio;
         }
         onSave(dataToSave);
     };
+
+    const parentDomainOptions = allDomains.filter(d => d.id_dominio !== initialData?.id_dominio);
+
+    // Texto para la sección de información, basado en el tipo de entidad
+    const infoTitle = tipo === 'Dominio' ? 'Dominio' : 'Equipo';
+    const infoText = tipo === 'Dominio'
+        ? 'Una unidad de negocio. Puede ser jerárquica. Los equipos pueden formar parte de un dominio.'
+        : 'Un equipo posee productos de datos, sistemas fuente, contratos de datos...';
+
     return (
-        <form onSubmit={handleSubmit}>
-            <h3>{initialData?.id_dominio ? 'Editar' : 'Nuevo'} Dominio</h3>
-            <div>
-                <label htmlFor="domain-name">Nombre:</label>
-                <input id="domain-name" type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={50} required disabled={isLoading} />
-            </div>
-            <div>
-                <label htmlFor="domain-desc">Descripción:</label>
-                <textarea id="domain-desc" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} maxLength={300} required disabled={isLoading} />
-            </div>
-            <div className="form-actions">
-                <button type="submit" className='add-new' disabled={isLoading}>{isLoading ? 'Guardando...' : 'Guardar'}</button>
-                <button type="button" onClick={onCancel} disabled={isLoading}>Cancelar</button>
-            </div>
-        </form>
+        // Usamos una clase similar a la de CreateDomainTeamPage para el layout del formulario.
+        // Nota: El onSubmit ahora está en el <form> tag.
+        <div className="create-domain-team-page-container"> {/* Similar a create-domain-team-page-container pero más específico para el form */}
+            <form onSubmit={handleSubmit}>
+                <h2 className="form-title">{initialData?.id_dominio ? 'Editar' : 'Agregar'} {infoTitle}</h2> {/* Título del formulario */}
+                <div className="form-layout"> {/* Clase de CreateDomainTeamPage.tsx */}
+                    <div className="info-section"> {/* Clase de CreateDomainTeamPage.tsx */}
+                        <h3>{infoTitle}</h3>
+                        <p>{infoText}</p>
+                    </div>
+                    <div className="form-section"> {/* Clase de CreateDomainTeamPage.tsx */}
+                        <div className="form-group">
+                            <label htmlFor="domain-name" className="required-label">Nombre</label>
+                            <input
+                                type="text"
+                                id="domain-name"
+                                value={nombre}
+                                onChange={(e) => setNombre(e.target.value)}
+                                placeholder="p. ej. Marketing"
+                                required
+                                disabled={isLoading}
+                                maxLength={50}
+                            />
+                            <p className="help-text">Nombre para mostrar de un {tipo.toLowerCase()}.</p>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="domain-identification" className="required-label">IDENTIFICACIÓN</label>
+                            <input
+                                type="text"
+                                id="domain-identification"
+                                value={identificacion}
+                                onChange={(e) => setIdentificacion(e.target.value)}
+                                placeholder="p. ej. marketing"
+                                required
+                                disabled={isLoading}
+                                maxLength={100}
+                            />
+                            <p className="help-text">Un identificador técnico único para toda la organización, como un UUID, un URN, una cadena o un número.</p>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="domain-desc" className="required-label">Descripción</label> {/* Asumiendo que descripción es requerida */}
+                            <textarea
+                                id="domain-desc"
+                                value={descripcion}
+                                onChange={(e) => setDescripcion(e.target.value)}
+                                disabled={isLoading}
+                                maxLength={300}
+                                required
+                            />
+                             <p className="help-text">Descripción detallada.</p>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="parentDomain">Principal ({tipo === 'Dominio' ? 'Dominio Padre' : 'Equipo Padre'})</label>
+                            <select
+                                id="parentDomain"
+                                value={idPadre}
+                                onChange={(e) => setIdPadre(e.target.value === '' ? '' : parseInt(e.target.value))}
+                                disabled={isLoading}
+                            >
+                                <option value="">Ninguno</option>
+                                {parentDomainOptions.map((domain) => (
+                                    <option key={domain.id_dominio} value={domain.id_dominio}>
+                                        {domain.nombre_dominio} ({domain.tipo_entidad})
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="help-text">La entidad principal de esta. Opcional.</p>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="required-label">Tipo</label>
+                            <div className="radio-group">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="entityType"
+                                        value="Dominio"
+                                        checked={tipo === 'Dominio'}
+                                        onChange={(e) => setTipo(e.target.value as 'Dominio')}
+                                        disabled={isLoading}
+                                    />
+                                    Dominio
+                                    <span className="radio-description">Una unidad de negocio. Puede ser jerárquica.</span>
+                                </label>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="entityType"
+                                        value="Equipo"
+                                        checked={tipo === 'Equipo'}
+                                        onChange={(e) => setTipo(e.target.value as 'Equipo')}
+                                        disabled={isLoading}
+                                    />
+                                    Equipo
+                                    <span className="radio-description">Un equipo de dominio/producto/función/desarrollo.</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="button-bar"> {/* Clase de CreateDomainTeamPage.tsx */}
+                            <button type="button" className="cancel-button" onClick={onCancel} disabled={isLoading}>
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className="add-team-button" // Clase de CreateDomainTeamPage.tsx (o add-new si prefieres mantener la anterior)
+                                disabled={isLoading || !nombre.trim() || !identificacion.trim() || !descripcion.trim()}
+                            >
+                                {isLoading ? 'Guardando...' : (initialData?.id_dominio ? 'Actualizar' : `+ Agregar ${tipo}`)}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
     );
 };
 

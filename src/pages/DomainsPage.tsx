@@ -1,8 +1,10 @@
 import React from 'react';
-import { Domain, DomainFormProps } from '../index'; // Eliminadas Product y Contract si no se usan aquí
+// Asegúrate que la interfaz Domain aquí sea la misma que en index.tsx (con los nuevos campos)
+import '/css/CreateDomainTeamPage.css';
+import { Domain, DomainFormProps } from '../index';
 
 interface DomainsPageProps {
-    domains: Domain[];
+    domains: Domain[]; // Esta es la lista de dominios/equipos a mostrar Y para el dropdown del form
     loading: boolean;
     error: string | null;
     onAddNew: () => void;
@@ -12,7 +14,7 @@ interface DomainsPageProps {
     currentDomain: Partial<Domain> | null;
     onSave: (data: Partial<Domain>) => Promise<void>;
     onCancel: () => void;
-    DomainFormComponent: React.FC<DomainFormProps>;
+    DomainFormComponent: React.FC<DomainFormProps>; // El tipo de la prop es correcto
 }
 
 const DomainsPage: React.FC<DomainsPageProps> = ({
@@ -23,8 +25,9 @@ const DomainsPage: React.FC<DomainsPageProps> = ({
 
     return (
         <div className="page-container">
-            <h2>Dominios ({domains.length})</h2>
-            <button className="add-new" onClick={onAddNew} disabled={loading}>+ Nuevo Dominio</button>
+            {/* Puedes cambiar el título si ahora son "Dominios / Equipos" */}
+            <h2>Dominios / Equipos ({domains.length})</h2>
+            <button className="add-new" onClick={onAddNew} disabled={loading}>+ Nuevo</button>
 
             {showForm && (
                 <DomainFormComponent
@@ -32,23 +35,24 @@ const DomainsPage: React.FC<DomainsPageProps> = ({
                    onSave={onSave}
                    onCancel={onCancel}
                    isLoading={loading}
+                   allDomains={domains} // <--- AÑADE ESTA LÍNEA (usa la prop 'domains' de DomainsPage)
                 />
             )}
 
-            {/* El error global de App.tsx ya lo maneja */}
-            {/* {error && <div className="error-message">Error: {error}</div>} */}
+            {pageLoading && <div className="loading-message">Cargando...</div>}
 
-            {pageLoading && <div className="loading-message">Cargando dominios...</div>}
-
-            {!pageLoading && domains.length === 0 && !error && <p>No hay dominios creados.</p>}
+            {!pageLoading && domains.length === 0 && !error && <p>No hay dominios/equipos creados.</p>}
 
             {!pageLoading && domains.length > 0 && (
                 <ul>
                     {domains.map(domain => (
                         <li key={domain.id_dominio}>
                             <div>
-                                <strong>{domain.nombre_dominio}</strong>
+                                <strong>{domain.nombre_dominio}</strong> ({domain.tipo_entidad})
+                                {domain.identificacion_dominio && <small style={{display: 'block', color: '#555'}}>ID: {domain.identificacion_dominio}</small>}
+                                {/* La descripción puede seguir siendo descripción_dominio */}
                                 <span>{domain.descripcion_dominio}</span>
+                                {domain.nombre_dominio_padre && <small style={{display: 'block', color: '#777'}}>Principal: {domain.nombre_dominio_padre}</small>}
                             </div>
                             <div className="actions">
                                 <button className="edit" onClick={() => onEdit(domain)} disabled={loading}>E</button>

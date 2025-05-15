@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '/css/CreateDomainTeamPage.css'; // Crea este archivo CSS
+import '/css/CreateDomainTeamPage.css'; 
 
 interface Domain {
     id_dominio: number;
@@ -16,7 +16,7 @@ const CreateDomainTeamPage: React.FC = () => {
     const [loadingDomains, setLoadingDomains] = useState(true);
     const [errorDomains, setErrorDomains] = useState<string | null>(null);
 
-    // Lógica para obtener los do
+    // Lógica para obtener los dominios
     useEffect(() => {
         const fetchDomains = async () => {
             setLoadingDomains(true);
