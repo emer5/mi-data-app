@@ -61,7 +61,12 @@ const ContractsPage: React.FC<ContractsPageProps> = ({ contracts, loading, error
                             <div className="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 className="text-uppercase text-muted mb-1 fw-bold">DATA CONTRACT</h6>
-                                    <h4 className="fw-semibold">{contract.nombre_contrato_dato}</h4>
+                                    <h4 className="fw-semibold">
+                                        <a href={`/contratos/${contract.id_contrato_dato}`} className="text-decoration-none">
+                                            {contract.nombre_contrato_dato}
+                                        </a>
+                                    </h4>
+
                                     <div className="mb-2">
                                         <span className="badge bg-light text-dark me-1">
                                             {contract.nombre_producto_dato || 'Sin producto'}

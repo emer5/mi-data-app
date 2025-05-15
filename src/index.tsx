@@ -13,6 +13,8 @@ import CreateDomainTeamPage from './pages/CreateDomainTeamPage';
 import AddProductDetailsPage from './pages/AddProductDetailsPage';
 import SelectContractTypePage from './pages/SelectContractTypePage'; // Nueva importación
 import AddContractDetailsPage from './pages/AddContractDetailsPage';   // Nueva importación
+import ContractDetailPage from './pages/ContractDetailPage';
+
 import '../css/index.css';
 import '../css/ContractsPage.css';
 import Navbar from './components/Navbar';
@@ -333,6 +335,9 @@ const App: React.FC = () => {
                             />
                         }
                     />
+                    {/* Nueva ruta de detalle de contrato*/ }
+                    <Route path="/contratos/:id" element={<ContractDetailPage contracts={contracts} />} />
+
                     {/* Nueva Ruta para Equipos */}
                     <Route path="/equipos/nuevo" element={<CreateDomainTeamPage />} /> {/* <<< ESTA ES LA RUTA CLAVE */}
 
