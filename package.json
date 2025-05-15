@@ -12,9 +12,11 @@
     "build": "webpack"
   },
   "dependencies": {
+    "flow": "^0.2.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.2",
+    "reactflow": "^11.11.4",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

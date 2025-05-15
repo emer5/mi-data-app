@@ -4,15 +4,15 @@ import { v4 as uuidv4 } from 'uuid'; // Necesitas instalar uuid: npm install uui
 import { Domain, Product } from '../index'; // Ajusta ruta
 
 // Definir los posibles estados
-const STATUS_OPTIONS = ['Development', 'Testing', 'Production', 'Deprecated', 'Archived'];
+const STATUS_OPTIONS = ['Desarrollo','Pruebas','Producción','Obsoleto','Archivado'];
 
 interface ProductDetailsFormProps {
     productType: string; // Tipo recibido de la página anterior
     domains: Domain[];
-    onSave: (data: Partial<Product>) => Promise<boolean>;
+    onSave: (data: Partial<Product>,isEditing: boolean) => Promise<boolean>;
     onCancel: () => void;
     isLoading: boolean;
-    // initialData?: Partial<Product> | null; // Para reutilizar en edición (futuro)
+    initialData?: Partial<Product> | null; // Para reutilizar en edición
 }
 
 const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
@@ -21,26 +21,42 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
     onSave,
     onCancel,
     isLoading,
-    // initialData = null // Para edición futura
+    initialData = null // Para edición futura
 }) => {
     // Estados para cada campo del formulario
+    const isEditing = !!initialData?.id_producto_dato;
+
     const [nombre, setNombre] = useState('');
-    const [identificador] = useState<string>(uuidv4()); // Generar UUID al montar
+    // Si estamos editando, usamos el ID existente. Si no, generamos UUID.
+    // El identificador_unico no debería cambiar una vez creado.
+    const [identificador, setIdentificador] = useState<string>('');
     const [ownerDomainId, setOwnerDomainId] = useState<number | ''>('');
     const [status, setStatus] = useState<string>('');
     const [descripcion, setDescripcion] = useState('');
+    // El tipo del producto se establecerá desde initialData o productType
+    const [currentProductType, setCurrentProductType] = useState<string>('');
+
 
     // Preseleccionar el primer dominio si existe
     useEffect(() => {
-        if (domains.length > 0 && ownerDomainId === '') {
-            setOwnerDomainId(domains[0].id_dominio);
+        if (initialData) {
+            setNombre(initialData.nombre_producto_dato || '');
+            // IMPORTANTE: El identificador_unico no debería cambiar después de la creación.
+            // Lo tomamos del initialData y lo hacemos read-only.
+            setIdentificador(initialData.identificador_unico || '');
+            setOwnerDomainId(initialData.id_dominio_propietario || '');
+            setStatus(initialData.estado || '');
+            setDescripcion(initialData.descripcion_producto_dato || '');
+            setCurrentProductType(initialData.tipo || ''); // Usar el tipo del producto existente
+        } else {
+            // Para un nuevo producto
+            setIdentificador(uuidv4()); // Generar UUID nuevo
+            setCurrentProductType(productType); // Usar el tipo pasado para nuevo
+            if (domains.length > 0 && ownerDomainId === '') {
+                // setOwnerDomainId(domains[0].id_dominio); // Opcional: preseleccionar
+            }
         }
-        // Preseleccionar estado por defecto si se desea
-        // if (status === '' && STATUS_OPTIONS.length > 0) {
-        //     setStatus(STATUS_OPTIONS[0]);
-        // }
-    }, [domains, ownerDomainId]);
-
+    }, [initialData, domains, productType, ownerDomainId]); // ownerDomainId quitado de deps si no se preselecciona para nuevo
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -50,19 +66,21 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
         }
         // Crear el objeto con los datos del formulario
         const formData: Partial<Product> = {
+            // Incluir id_producto_dato si estamos editando
+            ...(isEditing && initialData && { id_producto_dato: initialData.id_producto_dato }),
             nombre_producto_dato: nombre,
-            identificador_unico: identificador, // Enviamos el UUID generado
+            identificador_unico: identificador, // Se envía, pero el backend no debería permitir cambiarlo en update
             id_dominio_propietario: Number(ownerDomainId),
-            estado: status || null, // Enviar null si no se seleccionó
+            estado: status || null,
             descripcion_producto_dato: descripcion,
-            // El 'tipo' se añadirá en AddProductDetailsPage antes de llamar a onSave
+            tipo: currentProductType, // Usar el tipo actual (del producto existente o el seleccionado para nuevo)
         };
-        await onSave(formData); // Llamar a la función save pasada por props
+        await onSave(formData, isEditing);
     };
 
-    return (
-         // Aplica estilos CSS para que se parezca al screenshot
+     return (
         <form onSubmit={handleSubmit} className="detailed-product-form">
+            <h2>{isEditing ? 'Editar Producto' : `Añadir Producto: ${currentProductType}`}</h2>
             {/* 1. Nombre */}
             <div>
                 <label htmlFor="product-name">Nombre <span style={{color:'red'}}>*Requerido</span></label>
@@ -70,23 +88,24 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
                     id="product-name" type="text" value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                     maxLength={50} required disabled={isLoading}
-                    placeholder="The display name of this data product"
+                    placeholder="El nombre del Producto de datos"
                 />
             </div>
 
             {/* 2. ID (Mostrar, no editable) */}
              <div>
-                <label htmlFor="product-id">ID <span style={{color:'red'}}>*Requerido</span></label>
+                <label htmlFor="product-id">ID (Identificador Único) <span style={{color:'red'}}>*Requerido</span></label>
                 <input
                     id="product-id" type="text" value={identificador}
-                     readOnly disabled // Hacerlo read-only y deshabilitado visualmente
+                     readOnly disabled // Siempre read-only y deshabilitado visualmente
                     style={{ backgroundColor: '#eee', cursor: 'not-allowed' }}
                 />
+                 <small>Identificador técnico único. No se puede cambiar después de la creación.</small>
             </div>
 
             {/* 3. Owner Domain */}
             <div>
-                <label htmlFor="product-owner">Dominio<span style={{color:'red'}}>*Required</span></label>
+                <label htmlFor="product-owner">Dominio <span style={{color:'red'}}>*Requerido</span></label>
                 <select
                     id="product-owner" value={ownerDomainId}
                     onChange={(e) => setOwnerDomainId(Number(e.target.value))}
@@ -105,37 +124,37 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
             {/* 4. Status */}
             <div>
                 <label htmlFor="product-status">Estado</label>
-                <small>El estado actual en el ciclo de vida</small>
                 <select
                     id="product-status" value={status}
                     onChange={(e) => setStatus(e.target.value)}
                     disabled={isLoading}
                 >
-                    <option value="" disabled>Seleccionar Estado</option>
+                    <option value="">Seleccionar Estado</option>
                     {STATUS_OPTIONS.map(stat => (
                         <option key={stat} value={stat}>{stat}</option>
                     ))}
                 </select>
+                <small>The current stage in the lifecycle.</small>
             </div>
 
-            {/* 5. Archetype (Mostrar tipo seleccionado, no editable aquí) */}
+            {/* 5. Archetype/Tipo (Mostrar, no editable si se edita, o el tipo seleccionado si es nuevo) */}
             <div>
-                <label htmlFor="product-archetype">Arquetipo</label>
-                <small>La clasificación de datos de dominio.</small>
+                <label htmlFor="product-archetype">Archetype/Tipo</label>
                 <input
-                    id="product-archetype" type="text" value={productType}
-                    readOnly disabled style={{ backgroundColor: '#eee', cursor: 'not-allowed' }}
+                    id="product-archetype" type="text" value={currentProductType}
+                    readOnly disabled={isEditing} // No editable si se está editando. Si es nuevo, viene de la selección previa.
+                    style={{ backgroundColor: isEditing ? '#eee' : '#fff', cursor: isEditing ? 'not-allowed' : 'default' }}
                 />
-          
+                <small>Clasificación del producto de datos. No se puede cambiar después de la creación.</small>
             </div>
 
             {/* 6. Description */}
             <div>
-                <label htmlFor="product-desc">Descripcion</label>
+                <label htmlFor="product-desc">Description</label>
                 <textarea
                     id="product-desc" value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
-                    maxLength={300} /* Ajusta si es necesario */
+                    maxLength={300}
                     disabled={isLoading}
                     rows={4}
                 />
@@ -143,8 +162,8 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
 
             {/* Acciones */}
             <div className="form-actions">
-                 <button type="submit" className='add-new' disabled={isLoading || domains.length === 0}>
-                    {isLoading ? 'Saving...' : 'Guardar Producto'}
+                 <button type="submit" className='add-new' disabled={isLoading || (isEditing ? false : domains.length === 0) }>
+                    {isLoading ? 'Guardando...' : (isEditing ? 'Actualizar Producto' : 'Guardar Producto')}
                 </button>
                 <button type="button" onClick={onCancel} disabled={isLoading}>
                     Cancelar
