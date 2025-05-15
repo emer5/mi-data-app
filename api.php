@@ -143,14 +143,27 @@ try {
             break;
 
         // == PRODUCTOS ==
-        case 'get_products':
-            $sql = "SELECT pd.*, d.nombre_dominio as nombre_dominio_propietario FROM ProductoDato pd JOIN Dominio d ON pd.id_dominio_propietario = d.id_dominio ORDER BY pd.nombre_producto_dato";
-            $result = mysqli_query($conn, $sql);
-            if (!$result)
-                throw new Exception(mysqli_error($conn));
-            $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
-            $status_code = 200;
-            break;
+case 'get_products':
+    $sql = "SELECT 
+                p.id_producto_dato,
+                p.nombre_producto_dato,
+                p.descripcion_producto_dato,
+                p.fecha_de_creacion_producto_dato,
+                p.id_dominio_propietario,
+                p.tipo,
+                p.identificador_unico, -- 👈 Asegúrate de incluir este campo
+                p.estado,
+                p.tags,
+                d.nombre_dominio AS nombre_dominio_propietario
+            FROM ProductoDato p
+            LEFT JOIN Dominio d ON p.id_dominio_propietario = d.id_dominio";
+    
+    $result = mysqli_query($conn, $sql);
+    if (!$result) throw new Exception(mysqli_error($conn));
+    $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    $status_code = 200;
+    break;
+
 
         case 'add_product':
             if (
@@ -219,58 +232,35 @@ try {
             $status_code = 200;
             break;
 
-        case 'add_contract':
-            // Validación de datos ( frontend envía: id_producto_dato, id_dominio_consumidor, nombre_contrato_dato, descripcion_contrato_dato)
-            if (
-                isset($request_data['id_producto_dato'], $request_data['id_dominio_consumidor'], $request_data['nombre_contrato_dato']) &&
-                // noContieneNumeros($request_data['nombre_contrato_dato']) && // Validar si el nombre debe o no contener números
-                noContieneNumeros($request_data['descripcion_contrato_dato'] ?? '') // Descripción es opcional para noContieneNumeros
-            ) {
-                $prod_id = (int) $request_data['id_producto_dato'];
-                $cons_id = (int) $request_data['id_dominio_consumidor'];
-                $nombre = mysqli_real_escape_string($conn, $request_data['nombre_contrato_dato']);
-                $desc_raw = $request_data['descripcion_contrato_dato'] ?? null;
-                $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
-        
-                // Validación adicional: el dominio consumidor no puede ser el mismo que el propietario del producto
-                $check_owner_sql = "SELECT id_dominio_propietario FROM ProductoDato WHERE id_producto_dato = $prod_id";
-                $owner_result = mysqli_query($conn, $check_owner_sql);
-                if ($owner_row = mysqli_fetch_assoc($owner_result)) {
-                    if ($owner_row['id_dominio_propietario'] == $cons_id) {
-                        throw new Exception("Un dominio no puede crear un contrato para consumir su propio producto.");
-                    }
-                } else {
-                    throw new Exception("Producto no encontrado para validar propietario.");
-                }
+case 'add_contract':
+    if (
+        isset($request_data['id_producto_dato'], $request_data['id_dominio_consumidor'], $request_data['nombre_contrato_dato']) &&
+        noContieneNumeros($request_data['nombre_contrato_dato']) // ✅ solo valida el nombre, no la descripción
+    ) {
+        $prod_id = (int) $request_data['id_producto_dato'];
+        $cons_id = (int) $request_data['id_dominio_consumidor'];
+        $nombre = mysqli_real_escape_string($conn, $request_data['nombre_contrato_dato']);
+        $desc_raw = $request_data['descripcion_contrato_dato'] ?? null;
+        $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
 
-                $sql = "INSERT INTO ContratoDato (id_producto_dato, id_dominio_consumidor, nombre_contrato_dato, descripcion_contrato_dato) 
-                        VALUES ($prod_id, $cons_id, '$nombre', $desc)";
+        $sql = "INSERT INTO ContratoDato (id_producto_dato, id_dominio_consumidor, nombre_contrato_dato, descripcion_contrato_dato) 
+                VALUES ($prod_id, $cons_id, '$nombre', $desc)";
         
-                if (mysqli_query($conn, $sql)) {
-                    $response = ['message' => 'Contrato creado', 'id' => mysqli_insert_id($conn)];
-                    $status_code = 201;
-                } else {
-                    if (mysqli_errno($conn) == 1062) { // Error de clave única (producto-consumidor)
-                        throw new Exception('Ya existe un contrato para este producto y consumidor.');
-                    } else {
-                        throw new Exception(mysqli_error($conn));
-                    }
-                }
+        if (mysqli_query($conn, $sql)) {
+            $response = ['message' => 'Contrato creado', 'id' => mysqli_insert_id($conn)];
+            $status_code = 201;
+        } else {
+            if (mysqli_errno($conn) == 1062) {
+                throw new Exception('Ya existe un contrato para este producto y consumidor.');
             } else {
-                $missing_fields = [];
-                if (!isset($request_data['id_producto_dato'])) $missing_fields[] = 'id_producto_dato';
-                if (!isset($request_data['id_dominio_consumidor'])) $missing_fields[] = 'id_dominio_consumidor';
-                if (!isset($request_data['nombre_contrato_dato'])) $missing_fields[] = 'nombre_contrato_dato';
-                // if (isset($request_data['nombre_contrato_dato']) && !noContieneNumeros($request_data['nombre_contrato_dato'])) $missing_fields[] = 'nombre_contrato_dato (formato inválido)';
-                // if (isset($request_data['descripcion_contrato_dato']) && !noContieneNumeros($request_data['descripcion_contrato_dato'])) $missing_fields[] = 'descripcion_contrato_dato (formato inválido)';
-
-
-                $response = ['message' => 'Datos inválidos. Campos requeridos: ' . implode(', ', $missing_fields) . '. Nombre y descripción no deben contener solo números.'];
-                // La validación de noContieneNumeros para add_contract fue eliminada parcialmente en tu nuevo código PHP.
-                // Ajusta el mensaje si la lógica de validación cambia.
-                $status_code = 400;
+                throw new Exception(mysqli_error($conn));
             }
-            break;
+        }
+    } else {
+        $response = ['message' => 'Datos inválidos: Campos requeridos. Nombre y descripción no deben contener solo números.'];
+        $status_code = 400;
+    }
+    break;
 
         default:
             $response = ['message' => 'Acción no especificada o desconocida: ' . $action];

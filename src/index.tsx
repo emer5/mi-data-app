@@ -13,6 +13,8 @@ import CreateDomainTeamPage from './pages/CreateDomainTeamPage';
 import AddProductDetailsPage from './pages/AddProductDetailsPage';
 import SelectContractTypePage from './pages/SelectContractTypePage'; // Nueva importación
 import AddContractDetailsPage from './pages/AddContractDetailsPage';   // Nueva importación
+import '../css/index.css';
+import '../css/ContractsPage.css';
 import Navbar from './components/Navbar';
 
 // --- Interfaces (sin cambios respecto a tu última versión) ---
@@ -47,7 +49,7 @@ export interface ProductDetailsFormProps { productType: string; domains: Domain[
 export interface ConsumeProductModalProps { product: Product; domains: Domain[]; contractName: string; contractDescription: string; consumingDomainId: number | ''; onContractNameChange: (value: string) => void; onContractDescriptionChange: (value: string) => void; onConsumingDomainChange: (value: number | '') => void; onCreate: () => Promise<void>; onClose: () => void; isLoading: boolean; }
 
 // --- Configuración API y Helper (sin cambios) ---
-const API_URL = 'http://localhost/mi-data-app/api.php';
+const API_URL = 'http://localhost/datamesh/api.php';
 const noContieneNumeros = (value: string | null | undefined): boolean => {
     if (value === null || value === undefined) return true;
     return !/\d/.test(value.trim());
@@ -128,10 +130,10 @@ const App: React.FC = () => {
     const handleSaveDomain = async (domainData: Partial<Domain>): Promise<void> => {
         setError(null);
         if (!domainData.nombre_dominio || !domainData.descripcion_dominio) {
-             setError("Nombre y descripción son requeridos."); return;
+            setError("Nombre y descripción son requeridos."); return;
         }
         if (!noContieneNumeros(domainData.nombre_dominio) || !noContieneNumeros(domainData.descripcion_dominio)) {
-             setError("Nombre y descripción no deben contener números."); return;
+            setError("Nombre y descripción no deben contener números."); return;
         }
         setLoading(true);
         try {
@@ -139,13 +141,13 @@ const App: React.FC = () => {
             const action = currentDomain?.id_dominio ? 'update_domain' : 'add_domain';
             const method = currentDomain?.id_dominio ? 'PUT' : 'POST';
             const payload = currentDomain?.id_dominio ? { ...dataToSend, id_dominio: currentDomain.id_dominio } : dataToSend;
-            
+
             await apiRequest(action, method, payload);
             setShowDomainForm(false); setCurrentDomain(null); await fetchData(false); // No mostrar loading para recargas rápidas
         } catch (err) {
-             setError(err instanceof Error ? err.message : 'Error al guardar dominio');
+            setError(err instanceof Error ? err.message : 'Error al guardar dominio');
         } finally { setLoading(false); }
-     };
+    };
     const handleDeleteDomain = async (id: number): Promise<void> => {
         if (!window.confirm('¿Seguro que quieres eliminar este dominio? Fallará si tiene productos asociados.')) return;
         setError(null); setLoading(true);
@@ -153,41 +155,41 @@ const App: React.FC = () => {
             await apiRequest('delete_domain', 'POST', { id_dominio: id }); // 'action' no es necesario en el body si se lee del GET/POST action
             await fetchData(false);
         } catch (err) {
-             setError(err instanceof Error ? err.message : 'Error al eliminar dominio');
+            setError(err instanceof Error ? err.message : 'Error al eliminar dominio');
         } finally { setLoading(false); }
     };
 
     // --- Funciones CRUD Producto (sin cambios) ---
     const handleSaveProduct = async (productData: Partial<Product>): Promise<boolean> => {
-         setError(null); let success = false;
-         if (!productData.nombre_producto_dato || !productData.id_dominio_propietario || !productData.tipo || !productData.identificador_unico) {
-             const missing = [
-                 !productData.nombre_producto_dato ? 'Nombre' : '', !productData.id_dominio_propietario ? 'Dominio Propietario' : '',
-                 !productData.tipo ? 'Tipo' : '', !productData.identificador_unico ? 'Identificador' : ''
-             ].filter(Boolean).join(', ');
-             setError(`Faltan campos requeridos: ${missing}.`); return false;
-         }
-         if (!noContieneNumeros(productData.nombre_producto_dato) || !noContieneNumeros(productData.descripcion_producto_dato)) {
-             setError("Nombre y descripción del producto no deben contener números."); return false;
-         }
-         setLoading(true);
-         try {
-              const dataToSend: Partial<Product> = {
-                  nombre_producto_dato: productData.nombre_producto_dato,
-                  descripcion_producto_dato: productData.descripcion_producto_dato?.trim() || null,
-                  id_dominio_propietario: productData.id_dominio_propietario,
-                  tipo: productData.tipo,
-                  identificador_unico: productData.identificador_unico,
-                  estado: productData.estado?.trim() || null,
-                  tags: productData.tags?.trim() || null,
-              };
-              await apiRequest('add_product', 'POST', dataToSend);
-              await fetchData(false); success = true;
-          } catch (err) {
-               const errorMsg = err instanceof Error ? err.message : 'Error desconocido al guardar producto';
-               setError(`Error al guardar producto: ${errorMsg}`); success = false;
-          } finally { setLoading(false); }
-         return success;
+        setError(null); let success = false;
+        if (!productData.nombre_producto_dato || !productData.id_dominio_propietario || !productData.tipo || !productData.identificador_unico) {
+            const missing = [
+                !productData.nombre_producto_dato ? 'Nombre' : '', !productData.id_dominio_propietario ? 'Dominio Propietario' : '',
+                !productData.tipo ? 'Tipo' : '', !productData.identificador_unico ? 'Identificador' : ''
+            ].filter(Boolean).join(', ');
+            setError(`Faltan campos requeridos: ${missing}.`); return false;
+        }
+        if (!noContieneNumeros(productData.nombre_producto_dato) || !noContieneNumeros(productData.descripcion_producto_dato)) {
+            setError("Nombre y descripción del producto no deben contener números."); return false;
+        }
+        setLoading(true);
+        try {
+            const dataToSend: Partial<Product> = {
+                nombre_producto_dato: productData.nombre_producto_dato,
+                descripcion_producto_dato: productData.descripcion_producto_dato?.trim() || null,
+                id_dominio_propietario: productData.id_dominio_propietario,
+                tipo: productData.tipo,
+                identificador_unico: productData.identificador_unico,
+                estado: productData.estado?.trim() || null,
+                tags: productData.tags?.trim() || null,
+            };
+            await apiRequest('add_product', 'POST', dataToSend);
+            await fetchData(false); success = true;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Error desconocido al guardar producto';
+            setError(`Error al guardar producto: ${errorMsg}`); success = false;
+        } finally { setLoading(false); }
+        return success;
     };
     const handleDeleteProduct = async (id: number): Promise<void> => {
         if (!window.confirm('¿Seguro que quieres eliminar este producto? Se borrarán sus contratos asociados.')) return;
@@ -196,11 +198,11 @@ const App: React.FC = () => {
             await apiRequest('delete_product', 'POST', { id_producto_dato: id });
             await fetchData(false);
         } catch (err) {
-             const errorMsg = err instanceof Error ? err.message : 'Error desconocido al eliminar producto';
-             setError(`Error al eliminar producto: ${errorMsg}`);
+            const errorMsg = err instanceof Error ? err.message : 'Error desconocido al eliminar producto';
+            setError(`Error al eliminar producto: ${errorMsg}`);
         } finally { setLoading(false); }
     };
-    
+
     // --- Funciones CRUD Contrato ---
     // Para el modal de "Consumir Producto" (existente)
     const handleCreateContractFromModal = async (): Promise<void> => {
@@ -261,22 +263,22 @@ const App: React.FC = () => {
     const handleOpenConsumeModal = (product: Product) => {
         setError(null);
         if (domains.length < 2 && (!domains.find(d => d.id_dominio !== product.id_dominio_propietario))) {
-             setError("Necesitas al menos un dominio diferente al propietario para crear un contrato."); return;
+            setError("Necesitas al menos un dominio diferente al propietario para crear un contrato."); return;
         }
         const otherDomains = domains.filter(d => d.id_dominio !== product.id_dominio_propietario);
         if (otherDomains.length === 0) { setError("No hay otros dominios disponibles para consumir este producto."); return; }
         setProductToConsume(product); setConsumingDomainId(''); setContractName(`Contrato para ${product.nombre_producto_dato}`); setContractDescription(''); setShowConsumeModal(true);
     };
     const handleCloseConsumeModal = () => { setError(null); setShowConsumeModal(false); setProductToConsume(null); };
-    
+
 
     // --- Renderizado ---
     return (
-        <BrowserRouter basename="/mi-data-app"> {/* Ajusta basename si tu app no está en la raíz del servidor */}
+        <BrowserRouter> {/* Ajusta basename si tu app no está en la raíz del servidor */}
             <div>
                 <h1>Gestión Data Mesh Simple (XAMPP/PHP)</h1>
                 <Navbar />
-                {error && <div className="error-message">{error} <button onClick={() => setError(null)} style={{ marginLeft: '10px', padding: '2px 5px', cursor: 'pointer', border:'none', background:'transparent', color:'red', fontWeight:'bold' }}>X</button></div>}
+                {error && <div className="error-message">{error} <button onClick={() => setError(null)} style={{ marginLeft: '10px', padding: '2px 5px', cursor: 'pointer', border: 'none', background: 'transparent', color: 'red', fontWeight: 'bold' }}>X</button></div>}
                 {/* No mostrar "Cargando..." si solo se está recargando en segundo plano */}
                 {loading && <div className="loading-message">Cargando...</div>}
 
@@ -291,20 +293,18 @@ const App: React.FC = () => {
                             onSave={handleSaveDomain} onCancel={handleCancelDomainForm}
                             DomainFormComponent={DomainForm}
                         />
-                     } />
-                    <Route path="/productos" element={
-                        <ProductsPage
-                            products={products} domains={domains} loading={loading} error={error}
-                            onDelete={handleDeleteProduct} onConsume={handleOpenConsumeModal}
-                            showConsumeModal={showConsumeModal} productToConsume={productToConsume}
-                            consumingDomainId={consumingDomainId} contractName={contractName} contractDescription={contractDescription}
-                            onConsumingDomainChange={setConsumingDomainId} onContractNameChange={setContractName} onContractDescriptionChange={setContractDescription}
-                            onCreateContract={handleCreateContractFromModal} /* Cambiado para el modal */
-                            onCloseConsumeModal={handleCloseConsumeModal}
-                            ConsumeProductModalComponent={ConsumeProductModal}
-                        />
                     } />
-                    <Route path="/productos/seleccionar-tipo" element={ <SelectProductTypePage /> } />
+<Route path="/productos" element={
+    <ProductsPage
+        products={products}
+        domains={domains}
+        loading={loading}
+        error={error}
+        onDelete={handleDeleteProduct}
+    />
+} />
+
+                    <Route path="/productos/seleccionar-tipo" element={<SelectProductTypePage />} />
                     <Route path="/productos/nuevo/detalles" element={
                         <AddProductDetailsPage
                             domains={domains}
@@ -313,11 +313,11 @@ const App: React.FC = () => {
                         />
                     } />
                     <Route path="/contratos" element={
-                        <ContractsPage 
-                            contracts={contracts} 
-                            loading={loading} 
-                            error={error} 
-                        />} 
+                        <ContractsPage
+                            contracts={contracts}
+                            loading={loading}
+                            error={error}
+                        />}
                     />
                     {/* Nuevas Rutas para Contratos */}
                     <Route path="/contratos/nuevo" element={<SelectContractTypePage />} />
@@ -333,7 +333,7 @@ const App: React.FC = () => {
                             />
                         }
                     />
-                     {/* Nueva Ruta para Equipos */}
+                    {/* Nueva Ruta para Equipos */}
                     <Route path="/equipos/nuevo" element={<CreateDomainTeamPage />} /> {/* <<< ESTA ES LA RUTA CLAVE */}
 
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
@@ -346,13 +346,13 @@ const App: React.FC = () => {
 
 // --- Renderizar la aplicación ---
 const rootElement = document.getElementById('root');
-if (rootElement) { 
-    const root = ReactDOM.createRoot(rootElement); 
+if (rootElement) {
+    const root = ReactDOM.createRoot(rootElement);
     root.render(
         // <React.StrictMode> // StrictMode puede causar doble renderizado en desarrollo, útil para detectar bugs.
-            <App />
+        <App />
         // </React.StrictMode>
-    ); 
+    );
 }
 else { console.error("FATAL: Elemento #root no encontrado en index.html"); }
 
@@ -360,7 +360,7 @@ else { console.error("FATAL: Elemento #root no encontrado en index.html"); }
 const DomainForm: React.FC<DomainFormProps> = ({ initialData, onSave, onCancel, isLoading }) => {
     const [nombre, setNombre] = useState(initialData?.nombre_dominio || '');
     const [descripcion, setDescripcion] = useState(initialData?.descripcion_dominio || '');
-    
+
     useEffect(() => {
         setNombre(initialData?.nombre_dominio || '');
         setDescripcion(initialData?.descripcion_dominio || '');
@@ -409,17 +409,17 @@ const ConsumeProductModal: React.FC<ConsumeProductModalProps> = ({ product, doma
                 <form onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor="consuming-domain-modal">Dominio Consumidor:</label>
-                        <select 
-                            id="consuming-domain-modal" 
-                            value={consumingDomainId} 
-                            onChange={(e) => onConsumingDomainChange(e.target.value ? Number(e.target.value) : '')} 
-                            required 
+                        <select
+                            id="consuming-domain-modal"
+                            value={consumingDomainId}
+                            onChange={(e) => onConsumingDomainChange(e.target.value ? Number(e.target.value) : '')}
+                            required
                             disabled={isLoading || availableDomains.length === 0}
                         >
                             <option value="" disabled>Seleccione...</option>
                             {availableDomains.map(domain => (<option key={domain.id_dominio} value={domain.id_dominio}>{domain.nombre_dominio}</option>))}
                         </select>
-                        {availableDomains.length === 0 && <p><small style={{color:'red'}}>No hay otros dominios disponibles.</small></p>}
+                        {availableDomains.length === 0 && <p><small style={{ color: 'red' }}>No hay otros dominios disponibles.</small></p>}
                     </div>
                     <div>
                         <label htmlFor="contract-name-modal">Nombre Contrato:</label>

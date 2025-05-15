@@ -1,0 +1,8 @@
+.contract-card {
+    width: 100%;
+    height: 260px;
+    /* Altura fija */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}

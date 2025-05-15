@@ -1,5 +1,4 @@
-// 🧩 NUEVO ARCHIVO: src/pages/AddContractDetailsPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Domain, Product } from '../index';
 
@@ -8,7 +7,7 @@ interface AddContractDetailsPageProps {
     domains: Domain[];
     onSaveContract: (data: any) => Promise<boolean>;
     loading: boolean;
-    fetchContracts: () => void; // ✅ Agregado para recargar contratos al volver
+    fetchContracts: () => void;
 }
 
 const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
@@ -19,30 +18,47 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
     fetchContracts
 }) => {
     const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         nombre: '',
         identificacion: '',
         estado: '',
         dominio: '',
         producto: '',
-        responsable: ''
+        responsable: '',
+        uso: '',
+        proposito: '',
+        limitaciones: ''
     });
+
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async () => {
         setError(null);
-        if (Object.values(formData).some(f => !f)) {
+
+        if (
+            !formData.nombre ||
+            !formData.estado ||
+            !formData.dominio ||
+            !formData.producto ||
+            !formData.responsable ||
+            !formData.identificacion ||
+            !formData.uso ||
+            !formData.proposito ||
+            !formData.limitaciones
+        ) {
             setError('Todos los campos son obligatorios.');
             return;
         }
 
-        const descripcion = `ID: ${formData.identificacion} | Versión: 0.0.1 | Estado: ${formData.estado} | Responsable: ${formData.responsable}`;
+        const descripcion = `ID: ${formData.identificacion} | Versión: 0.0.1 | Estado: ${formData.estado} | Responsable: ${formData.responsable} | Uso: ${formData.uso} | Propósito: ${formData.proposito} | Limitaciones: ${formData.limitaciones}`;
+
         const payload = {
             id_producto_dato: parseInt(formData.producto),
             id_dominio_consumidor: parseInt(formData.dominio),
@@ -53,7 +69,7 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
         const success = await onSaveContract(payload);
         if (success) {
             setSuccess(true);
-            fetchContracts(); // ✅ Forzar recarga de contratos
+            fetchContracts();
             navigate('/contratos');
         } else {
             setError('No se pudo guardar el contrato.');
@@ -65,15 +81,16 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             <h2>Agregar contrato de datos</h2>
             {error && <div className="alert alert-danger">{error}</div>}
 
-            <div className="mb-3">
-                <label className="form-label">Nombre del contrato</label>
-                <input name="nombre" className="form-control" value={formData.nombre} onChange={handleChange} />
-            </div>
-
-            <div className="mb-3">
-                <label className="form-label">Identificación</label>
-                <input name="identificacion" className="form-control" value={formData.identificacion} onChange={handleChange} />
-            </div>
+            {[
+                { label: 'Nombre del contrato', name: 'nombre' },
+                { label: 'Identificador del Producto (manual)', name: 'identificacion' },
+                { label: 'Responsable (Arrendatario)', name: 'responsable' }
+            ].map(({ label, name }) => (
+                <div className="mb-3" key={name}>
+                    <label className="form-label">{label}</label>
+                    <input name={name} className="form-control" value={(formData as any)[name]} onChange={handleChange} />
+                </div>
+            ))}
 
             <div className="mb-3">
                 <label className="form-label">Estado</label>
@@ -106,10 +123,22 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                 </select>
             </div>
 
-            <div className="mb-3">
-                <label className="form-label">Responsable (Arrendatario)</label>
-                <input name="responsable" className="form-control" value={formData.responsable} onChange={handleChange} />
-            </div>
+            {[
+                { label: 'Uso', name: 'uso', placeholder: 'Uso recomendado de los datos' },
+                { label: 'Propósito', name: 'proposito', placeholder: 'Finalidad prevista de los datos facilitados' },
+                { label: 'Limitaciones', name: 'limitaciones', placeholder: 'Limitaciones técnicas, legales y de cumplimiento' }
+            ].map(({ label, name, placeholder }) => (
+                <div className="mb-3" key={name}>
+                    <label className="form-label">{label}</label>
+                    <textarea
+                        name={name}
+                        className="form-control"
+                        value={(formData as any)[name]}
+                        onChange={handleChange}
+                        placeholder={placeholder}
+                    />
+                </div>
+            ))}
 
             <button className="btn btn-primary" disabled={loading} onClick={handleSubmit}>
                 + Agregar contrato de datos

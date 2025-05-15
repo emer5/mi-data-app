@@ -1,10 +1,9 @@
-// src/pages/ContractsPage.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Contract } from '../index'; // Asume que index.tsx exporta esta interfaz
+import { Contract } from '../index';
 
 interface ContractsPageProps {
-    contracts: Contract[] | any; // Se mantiene 'any' por si la API devuelve algo inesperado
+    contracts: Contract[] | any;
     loading: boolean;
     error: string | null;
 }
@@ -13,14 +12,12 @@ const ContractsPage: React.FC<ContractsPageProps> = ({ contracts, loading, error
     const navigate = useNavigate();
     const [search, setSearch] = useState('');
 
-    // Si 'contracts' no es un array, muestra un mensaje de error y no intentes mapear.
-    if (!Array.isArray(contracts) && !loading) { // No mostrar si está cargando
-        // console.error("ContractsPage: 'contracts' prop is not an array.", contracts);
+    if (!Array.isArray(contracts) && !loading) {
         return (
             <div className="page-container">
-                 <h2>Contratos (Error)</h2>
-                 <div className="error-message">Error: Los datos de contratos no se pudieron cargar correctamente. Por favor, revisa la consola.</div>
-                 <button className="add-new" onClick={() => navigate('/contratos/nuevo')} style={{marginTop: '15px'}}>
+                <h2>Contratos (Error)</h2>
+                <div className="error-message">Error: Los datos de contratos no se pudieron cargar correctamente.</div>
+                <button className="add-new" onClick={() => navigate('/contratos/nuevo')} style={{ marginTop: '15px' }}>
                     + Agregar Contrato
                 </button>
             </div>
@@ -36,8 +33,6 @@ const ContractsPage: React.FC<ContractsPageProps> = ({ contracts, loading, error
     const pageLoading = loading && (!Array.isArray(contracts) || contracts.length === 0);
 
     return (
-        // Clases de Bootstrap (container, d-flex, etc.) necesitan Bootstrap CSS.
-        // Reemplazadas por page-container y estilos inline/index.css para consistencia.
         <div className="page-container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Contratos ({Array.isArray(contracts) ? contracts.length : 0})</h2>
@@ -48,7 +43,6 @@ const ContractsPage: React.FC<ContractsPageProps> = ({ contracts, loading, error
 
             <input
                 type="text"
-                // className="form-control mb-4" // Clase Bootstrap
                 style={{ width: 'calc(100% - 22px)', padding: '10px', marginBottom: '20px', border: '1px solid #ccc', borderRadius: '4px' }}
                 placeholder="Buscar contratos por nombre..."
                 value={search}
@@ -56,32 +50,38 @@ const ContractsPage: React.FC<ContractsPageProps> = ({ contracts, loading, error
             />
 
             {pageLoading && <div className="loading-message">Cargando contratos...</div>}
-            {/* El error global de App.tsx debería manejar los errores de API. */}
-            {/* error && <div className="error-message">{error}</div> */}
-
             {!pageLoading && filteredContracts.length === 0 && !error && (
-                 <p>No hay contratos que coincidan con tu búsqueda o no hay contratos creados.</p>
+                <p>No hay contratos que coincidan con tu búsqueda o no hay contratos creados.</p>
             )}
 
-            {/* Estructura de lista similar a la original para mantener consistencia de estilos */}
-            {!pageLoading && filteredContracts.length > 0 && (
-                <ul>
-                    {filteredContracts.map(contract => (
-                        <li key={contract.id_contrato_dato}>
-                            <div>
-                                <strong>{contract.nombre_contrato_dato}</strong>
-                                <span>{contract.descripcion_contrato_dato}</span>
-                                <small>
-                                    Producto: {contract.nombre_producto_dato || 'N/A'} <br />
-                                    Dominio consumidor: {contract.nombre_dominio_consumidor || 'N/A'} <br />
-                                    Creado: {new Date(contract.fecha_de_creacion_contrato_dato).toLocaleDateString()}
-                                </small>
+            <div className="row">
+                {filteredContracts.map(contract => (
+                    <div key={contract.id_contrato_dato} className="col-md-6 mb-4">
+                        <div className="card shadow-sm border-start border-4 border-primary p-3 contract-card">
+                            <div className="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 className="text-uppercase text-muted mb-1 fw-bold">DATA CONTRACT</h6>
+                                    <h4 className="fw-semibold">{contract.nombre_contrato_dato}</h4>
+                                    <div className="mb-2">
+                                        <span className="badge bg-light text-dark me-1">
+                                            {contract.nombre_producto_dato || 'Sin producto'}
+                                        </span>
+                                    </div>
+                                    <p className="text-muted small">
+                                        {contract.descripcion_contrato_dato}
+                                    </p>
+                                </div>
                             </div>
-                            {/* Aquí podrías añadir acciones como ver detalles o eliminar si lo implementas */}
-                        </li>
-                    ))}
-                </ul>
-            )}
+                            <div className="d-flex flex-wrap gap-2 small mt-2">
+                                <span className="badge bg-primary">{contract.nombre_dominio_consumidor}</span>
+                                <span className="badge bg-secondary">
+                                    {new Date(contract.fecha_de_creacion_contrato_dato).toLocaleDateString()}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };
