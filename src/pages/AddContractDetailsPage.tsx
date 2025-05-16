@@ -18,10 +18,10 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
     fetchContracts
 }) => {
     const navigate = useNavigate();
-
     const [formData, setFormData] = useState({
         nombre: '',
         identificacion: '',
+        version: '0.0.1',
         estado: '',
         dominio: '',
         producto: '',
@@ -29,18 +29,12 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
         uso: '',
         proposito: '',
         limitaciones: '',
-        // NUEVOS CAMPOS:
-        precioMonto: '',
-        precioMoneda: '',
-        precioUnitario: '',
-        esquemaNombre: '',
-        esquemaNombreFisico: '',
-        esquemaTipoLogico: ''
+        precio_monto: '',
+        precio_moneda: '',
+        precio_unitario: ''
     });
 
-
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -49,34 +43,38 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
 
     const handleSubmit = async () => {
         setError(null);
+        const camposObligatorios = [
+            'nombre', 'identificacion', 'version', 'estado', 'dominio',
+            'producto', 'responsable', 'uso', 'proposito', 'limitaciones',
+            'precio_monto', 'precio_moneda', 'precio_unitario'
+        ];
 
-        if (
-            !formData.nombre ||
-            !formData.estado ||
-            !formData.dominio ||
-            !formData.producto ||
-            !formData.responsable ||
-            !formData.identificacion ||
-            !formData.uso ||
-            !formData.proposito ||
-            !formData.limitaciones
-        ) {
-            setError('Todos los campos son obligatorios.');
-            return;
+        for (const campo of camposObligatorios) {
+            if (!formData[campo as keyof typeof formData]) {
+                setError('Todos los campos son obligatorios.');
+                return;
+            }
         }
 
-        const descripcion = `ID: ${formData.identificacion} | Versión: 0.0.1 | Estado: ${formData.estado} | Responsable: ${formData.responsable} | Uso: ${formData.uso} | Propósito: ${formData.proposito} | Limitaciones: ${formData.limitaciones}`;
+        const descripcion =
+            `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable} | ` +
+            `Uso: ${formData.uso} | Propósito: ${formData.proposito} | Limitaciones: ${formData.limitaciones}`;
 
         const payload = {
             id_producto_dato: parseInt(formData.producto),
             id_dominio_consumidor: parseInt(formData.dominio),
             nombre_contrato_dato: formData.nombre,
-            descripcion_contrato_dato: descripcion
+            descripcion_contrato_dato: descripcion,
+            uso: formData.uso,
+            proposito: formData.proposito,
+            limitaciones: formData.limitaciones,
+            precio_monto: parseFloat(formData.precio_monto),
+            precio_moneda: formData.precio_moneda,
+            precio_unitario: formData.precio_unitario
         };
 
         const success = await onSaveContract(payload);
         if (success) {
-            setSuccess(true);
             fetchContracts();
             navigate('/contratos');
         } else {
@@ -89,21 +87,24 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             <h2>Agregar contrato de datos</h2>
             {error && <div className="alert alert-danger">{error}</div>}
 
-            {[
-                { label: 'Nombre del contrato', name: 'nombre' },
-                { label: 'Identificador del Producto (manual)', name: 'identificacion' },
-                { label: 'Responsable (Arrendatario)', name: 'responsable' }
-            ].map(({ label, name }) => (
-                <div className="mb-3" key={name}>
-                    <label className="form-label">{label}</label>
-                    <input name={name} className="form-control" value={(formData as any)[name]} onChange={handleChange} />
-                </div>
-            ))}
-
+            {/* FUNDAMENTOS */}
+            <h5 className="mt-4 mb-2">Fundamentos</h5>
+            <div className="mb-3">
+                <label className="form-label">Nombre del contrato</label>
+                <input name="nombre" className="form-control" value={formData.nombre} onChange={handleChange} />
+            </div>
+            <div className="mb-3">
+                <label className="form-label">Identificador del Producto (manual)</label>
+                <input name="identificacion" className="form-control" value={formData.identificacion} onChange={handleChange} />
+            </div>
+            <div className="mb-3">
+                <label className="form-label">Versión</label>
+                <input name="version" className="form-control" value={formData.version} onChange={handleChange} />
+            </div>
             <div className="mb-3">
                 <label className="form-label">Estado</label>
                 <select name="estado" className="form-select" value={formData.estado} onChange={handleChange}>
-                    <option value="">Seleccionar estado</option>
+                    <option value="">Seleccione un estado…</option>
                     <option value="Propuesto">Propuesto</option>
                     <option value="Activo">Activo</option>
                     <option value="Obsolescente">Obsolescente</option>
@@ -111,47 +112,7 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                 </select>
             </div>
 
-            <h4 className="mt-4">Precios</h4>
-            <div className="mb-3">
-                <label className="form-label">Precio Monto</label>
-                <input name="precioMonto" className="form-control" value={formData.precioMonto} onChange={handleChange} placeholder="Precio por unidad" />
-            </div>
-
-            <div className="mb-3">
-                <label className="form-label">Precio Moneda</label>
-                <input name="precioMoneda" className="form-control" value={formData.precioMoneda} onChange={handleChange} placeholder="Ej: CLP, USD" />
-            </div>
-
-            <div className="mb-3">
-                <label className="form-label">Precio Unitario</label>
-                <input name="precioUnitario" className="form-control" value={formData.precioUnitario} onChange={handleChange} placeholder="Ej: MB, GB, unidad" />
-            </div>
-
-            <h4 className="mt-4">Esquema</h4>
-            <div className="mb-3">
-                <label className="form-label">Nombre</label>
-                <input name="esquemaNombre" className="form-control" value={formData.esquemaNombre} onChange={handleChange} />
-            </div>
-
-            <div className="mb-3">
-                <label className="form-label">Nombre físico</label>
-                <input name="esquemaNombreFisico" className="form-control" value={formData.esquemaNombreFisico} onChange={handleChange} />
-            </div>
-
-            <div className="mb-3">
-                <label className="form-label">Tipo lógico</label>
-                <select name="esquemaTipoLogico" className="form-select" value={formData.esquemaTipoLogico} onChange={handleChange}>
-                    <option value="">Seleccionar tipo lógico</option>
-                    <option value="cuerda">Cuerda</option>
-                    <option value="fecha">Fecha</option>
-                    <option value="número">Número</option>
-                    <option value="entero">Entero</option>
-                    <option value="objeto">Objeto</option>
-                    <option value="arreglo">Arreglo</option>
-                    <option value="booleano">Booleano</option>
-                </select>
-            </div>
-
+            {/* RESPONSABLE Y VÍNCULOS */}
             <div className="mb-3">
                 <label className="form-label">Dominio consumidor</label>
                 <select name="dominio" className="form-select" value={formData.dominio} onChange={handleChange}>
@@ -161,7 +122,6 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                     ))}
                 </select>
             </div>
-
             <div className="mb-3">
                 <label className="form-label">Producto</label>
                 <select name="producto" className="form-select" value={formData.producto} onChange={handleChange}>
@@ -171,23 +131,40 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                     ))}
                 </select>
             </div>
+            <div className="mb-3">
+                <label className="form-label">Responsable (Arrendatario)</label>
+                <input name="responsable" className="form-control" value={formData.responsable} onChange={handleChange} />
+            </div>
 
-            {[
-                { label: 'Uso', name: 'uso', placeholder: 'Uso recomendado de los datos' },
-                { label: 'Propósito', name: 'proposito', placeholder: 'Finalidad prevista de los datos facilitados' },
-                { label: 'Limitaciones', name: 'limitaciones', placeholder: 'Limitaciones técnicas, legales y de cumplimiento' }
-            ].map(({ label, name, placeholder }) => (
-                <div className="mb-3" key={name}>
-                    <label className="form-label">{label}</label>
-                    <textarea
-                        name={name}
-                        className="form-control"
-                        value={(formData as any)[name]}
-                        onChange={handleChange}
-                        placeholder={placeholder}
-                    />
-                </div>
-            ))}
+            {/* DESCRIPCIÓN */}
+            <h5 className="mt-4 mb-2">Descripción</h5>
+            <div className="mb-3">
+                <label className="form-label">Uso</label>
+                <textarea name="uso" className="form-control" value={formData.uso} onChange={handleChange} />
+            </div>
+            <div className="mb-3">
+                <label className="form-label">Propósito</label>
+                <textarea name="proposito" className="form-control" value={formData.proposito} onChange={handleChange} />
+            </div>
+            <div className="mb-3">
+                <label className="form-label">Limitaciones</label>
+                <textarea name="limitaciones" className="form-control" value={formData.limitaciones} onChange={handleChange} />
+            </div>
+
+            {/* PRECIOS */}
+            <h5 className="mt-4 mb-2">Precios</h5>
+            <div className="mb-3">
+                <label className="form-label">Monto</label>
+                <input type="number" name="precio_monto" className="form-control" value={formData.precio_monto} onChange={handleChange} />
+            </div>
+            <div className="mb-3">
+                <label className="form-label">Moneda</label>
+                <input name="precio_moneda" className="form-control" value={formData.precio_moneda} onChange={handleChange} />
+            </div>
+            <div className="mb-3">
+                <label className="form-label">Unidad</label>
+                <input name="precio_unitario" className="form-control" value={formData.precio_unitario} onChange={handleChange} />
+            </div>
 
             <button className="btn btn-primary" disabled={loading} onClick={handleSubmit}>
                 + Agregar contrato de datos
