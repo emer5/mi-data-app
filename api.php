@@ -71,7 +71,9 @@ $response = ['message' => 'Acción no válida'];
 $status_code = 400;
 try {
     error_log("API recibió acción: '" . ($action ?? 'NULL') . "' con método: " . $_SERVER['REQUEST_METHOD']);
-    if ($request_data) { error_log("API recibió datos del cuerpo: " . json_encode($request_data)); }
+    if ($request_data) {
+        error_log("API recibió datos del cuerpo: " . json_encode($request_data));
+    }
 
 
     switch ($action) {
@@ -143,8 +145,8 @@ try {
             break;
 
         // == PRODUCTOS ==
-case 'get_products':
-    $sql = "SELECT 
+        case 'get_products':
+            $sql = "SELECT 
                 p.id_producto_dato,
                 p.nombre_producto_dato,
                 p.descripcion_producto_dato,
@@ -157,44 +159,68 @@ case 'get_products':
                 d.nombre_dominio AS nombre_dominio_propietario
             FROM ProductoDato p
             LEFT JOIN Dominio d ON p.id_dominio_propietario = d.id_dominio";
-    
-    $result = mysqli_query($conn, $sql);
-    if (!$result) throw new Exception(mysqli_error($conn));
-    $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    $status_code = 200;
+
+            $result = mysqli_query($conn, $sql);
+            if (!$result)
+                throw new Exception(mysqli_error($conn));
+            $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
+            $status_code = 200;
+            break;
+
+
+case 'add_product':
+    if (
+        empty($request_data['nombre_producto_dato']) ||
+        empty($request_data['id_dominio_propietario']) ||
+        empty($request_data['tipo']) ||
+        empty($request_data['identificador_unico']) ||
+        !noContieneNumeros($request_data['nombre_producto_dato']) ||
+        !noContieneNumeros($request_data['descripcion_producto_dato'] ?? '')
+    ) {
+        $response = ['message' => 'Datos inválidos (nombre, dueño, tipo, identificador requeridos y sin números en nombre/desc)'];
+        $status_code = 400;
+        break;
+    }
+
+    $nombre = mysqli_real_escape_string($conn, $request_data['nombre_producto_dato']);
+    $desc_raw = $request_data['descripcion_producto_dato'] ?? null;
+    $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
+    $owner_id = (int) $request_data['id_dominio_propietario'];
+    $tipo = mysqli_real_escape_string($conn, $request_data['tipo']);
+    $identificador = mysqli_real_escape_string($conn, $request_data['identificador_unico']);
+    $estado = isset($request_data['estado']) && $request_data['estado'] !== '' ? "'" . mysqli_real_escape_string($conn, $request_data['estado']) . "'" : "NULL";
+    $tags = isset($request_data['tags']) && $request_data['tags'] !== '' ? "'" . mysqli_real_escape_string($conn, $request_data['tags']) . "'" : "NULL";
+
+    $sql = "INSERT INTO ProductoDato (
+                nombre_producto_dato,
+                descripcion_producto_dato,
+                id_dominio_propietario,
+                tipo,
+                identificador_unico,
+                estado,
+                tags
+            ) VALUES (
+                '$nombre',
+                $desc,
+                $owner_id,
+                '$tipo',
+                '$identificador',
+                $estado,
+                $tags
+            )";
+
+    if (mysqli_query($conn, $sql)) {
+        $response = ['message' => 'Producto creado', 'id' => mysqli_insert_id($conn)];
+        $status_code = 201;
+    } else {
+        if (mysqli_errno($conn) == 1062) {
+            throw new Exception("Error: El identificador único '$identificador' ya existe.");
+        } else {
+            throw new Exception(mysqli_error($conn));
+        }
+    }
     break;
 
-
-        case 'add_product':
-            if (
-                empty($request_data['nombre_producto_dato']) ||
-                empty($request_data['id_dominio_propietario']) || empty($request_data['tipo']) || empty($request_data['identificador_unico']) ||
-                !noContieneNumeros($request_data['nombre_producto_dato']) || !noContieneNumeros($request_data['descripcion_producto_dato'] ?? '')
-            ) {
-                $response = ['message' => 'Datos inválidos (nombre, dueño, tipo, identificador requeridos y sin números en nombre/desc)'];
-                $status_code = 400;
-                break;
-            }
-            $nombre = mysqli_real_escape_string($conn, $request_data['nombre_producto_dato']);
-            $desc_raw = $request_data['descripcion_producto_dato'] ?? null;
-            $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
-            $owner_id = (int) $request_data['id_dominio_propietario'];
-            $tipo = mysqli_real_escape_string($conn, $request_data['tipo']);
-            $identificador = mysqli_real_escape_string($conn, $request_data['identificador_unico']);
-            $estado = isset($request_data['estado']) && $request_data['estado'] !== '' ? "'" . mysqli_real_escape_string($conn, $request_data['estado']) . "'" : "NULL";
-            $tags = isset($request_data['tags']) && $request_data['tags'] !== '' ? "'" . mysqli_real_escape_string($conn, $request_data['tags']) . "'" : "NULL";
-            $sql = "INSERT INTO ProductoDato (nombre_producto_dato, descripcion_producto_dato, id_dominio_propietario, tipo, identificador_unico, estado, tags) VALUES ('$nombre', $desc, $owner_id, '$tipo', '$identificador', $estado, $tags)";
-            if (mysqli_query($conn, $sql)) {
-                $response = ['message' => 'Producto creado', 'id' => mysqli_insert_id($conn)];
-                $status_code = 201;
-            } else {
-                if (mysqli_errno($conn) == 1062) { // Error de clave única duplicada
-                    throw new Exception("Error: El identificador único '$identificador' ya existe.");
-                } else {
-                    throw new Exception(mysqli_error($conn));
-                }
-            }
-            break;
 
         case 'delete_product':
             if (isset($request_data['id_producto_dato'])) {
@@ -219,23 +245,28 @@ case 'get_products':
             break;
 
         // == CONTRATOS ==
-        case 'get_contracts':
-            $sql = "SELECT cd.*, pd.nombre_producto_dato, dc.nombre_dominio as nombre_dominio_consumidor 
-                    FROM ContratoDato cd 
-                    JOIN ProductoDato pd ON cd.id_producto_dato = pd.id_producto_dato 
-                    JOIN Dominio dc ON cd.id_dominio_consumidor = dc.id_dominio 
-                    ORDER BY cd.fecha_de_creacion_contrato_dato DESC";
-            $result = mysqli_query($conn, $sql);
-            if (!$result)
-                throw new Exception(mysqli_error($conn));
-            $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
-            $status_code = 200;
-            break;
+case 'get_contracts':
+    $sql = "SELECT 
+                cd.*, 
+                pd.nombre_producto_dato, 
+                dc.nombre_dominio AS nombre_dominio_consumidor 
+            FROM ContratoDato cd
+            JOIN ProductoDato pd ON cd.id_producto_dato = pd.id_producto_dato
+            JOIN Dominio dc ON cd.id_dominio_consumidor = dc.id_dominio
+            ORDER BY cd.fecha_de_creacion_contrato_dato DESC";
+
+    $result = mysqli_query($conn, $sql);
+    if (!$result) {
+        throw new Exception(mysqli_error($conn));
+    }
+    $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    $status_code = 200;
+    break;
 
 case 'add_contract':
     if (
         isset($request_data['id_producto_dato'], $request_data['id_dominio_consumidor'], $request_data['nombre_contrato_dato']) &&
-        noContieneNumeros($request_data['nombre_contrato_dato']) // ✅ solo valida el nombre, no la descripción
+        noContieneNumeros($request_data['nombre_contrato_dato'])
     ) {
         $prod_id = (int) $request_data['id_producto_dato'];
         $cons_id = (int) $request_data['id_dominio_consumidor'];
@@ -243,9 +274,37 @@ case 'add_contract':
         $desc_raw = $request_data['descripcion_contrato_dato'] ?? null;
         $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
 
-        $sql = "INSERT INTO ContratoDato (id_producto_dato, id_dominio_consumidor, nombre_contrato_dato, descripcion_contrato_dato) 
-                VALUES ($prod_id, $cons_id, '$nombre', $desc)";
-        
+        // Campos adicionales
+        $uso = mysqli_real_escape_string($conn, $request_data['uso'] ?? '');
+        $proposito = mysqli_real_escape_string($conn, $request_data['proposito'] ?? '');
+        $limitaciones = mysqli_real_escape_string($conn, $request_data['limitaciones'] ?? '');
+        $precio_monto = isset($request_data['precio_monto']) ? floatval($request_data['precio_monto']) : 0;
+        $precio_moneda = mysqli_real_escape_string($conn, $request_data['precio_moneda'] ?? '');
+        $precio_unitario = mysqli_real_escape_string($conn, $request_data['precio_unitario'] ?? '');
+        $sql = "INSERT INTO ContratoDato (
+                    id_producto_dato, 
+                    id_dominio_consumidor, 
+                    nombre_contrato_dato, 
+                    descripcion_contrato_dato,
+                    uso,
+                    proposito,
+                    limitaciones,
+                    precio_monto,
+                    precio_moneda,
+                    precio_unitario
+                ) VALUES (
+                    $prod_id, 
+                    $cons_id, 
+                    '$nombre', 
+                    $desc,
+                    '$uso',
+                    '$proposito',
+                    '$limitaciones',
+                    $precio_monto,
+                    '$precio_moneda',
+                    '$precio_unitario'
+                )";
+
         if (mysqli_query($conn, $sql)) {
             $response = ['message' => 'Contrato creado', 'id' => mysqli_insert_id($conn)];
             $status_code = 201;
@@ -261,8 +320,7 @@ case 'add_contract':
         $status_code = 400;
     }
     break;
-
-        default:
+            default:
             $response = ['message' => 'Acción no especificada o desconocida: ' . $action];
             $status_code = 404;
             break;
@@ -270,21 +328,14 @@ case 'add_contract':
 } catch (Exception $e) {
     error_log("API Exception: " . $e->getMessage() . " | Action: " . $action . " | Data: " . json_encode($request_data));
     $response = ['message' => 'Error en el servidor: ' . $e->getMessage()];
-    //Devolver el código de estado original si es un error de validación del cliente
     if ($status_code == 400 && strpos($e->getMessage(), "Un dominio no puede crear un contrato") !== false) {
-         // Mantener 400 si es este error específico
+        // Mantener 400 si es este error específico
     } else {
         $status_code = 500; // Error interno del servidor para otros casos
     }
 }
 
-// --- Cerrar Conexión y Enviar Respuesta ---
+// --- Cerrar conexión y enviar respuesta ---
 mysqli_close($conn);
-if (json_last_error() !== JSON_ERROR_NONE) {
-    error_log("❌ JSON error antes de enviar respuesta: " . json_last_error_msg() . " | Respuesta: " . print_r($response, true));
-    // No intentes enviar json_encode($response) si ya falló, podría empeorar el error.
-    // Considera enviar un error genérico si esto ocurre.
-}
 http_response_code($status_code);
 echo json_encode($response);
-?>

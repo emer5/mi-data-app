@@ -28,8 +28,16 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
         responsable: '',
         uso: '',
         proposito: '',
-        limitaciones: ''
+        limitaciones: '',
+        // NUEVOS CAMPOS:
+        precioMonto: '',
+        precioMoneda: '',
+        precioUnitario: '',
+        esquemaNombre: '',
+        esquemaNombreFisico: '',
+        esquemaTipoLogico: ''
     });
+
 
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -100,6 +108,47 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                     <option value="Activo">Activo</option>
                     <option value="Obsolescente">Obsolescente</option>
                     <option value="Jubilado">Jubilado</option>
+                </select>
+            </div>
+
+            <h4 className="mt-4">Precios</h4>
+            <div className="mb-3">
+                <label className="form-label">Precio Monto</label>
+                <input name="precioMonto" className="form-control" value={formData.precioMonto} onChange={handleChange} placeholder="Precio por unidad" />
+            </div>
+
+            <div className="mb-3">
+                <label className="form-label">Precio Moneda</label>
+                <input name="precioMoneda" className="form-control" value={formData.precioMoneda} onChange={handleChange} placeholder="Ej: CLP, USD" />
+            </div>
+
+            <div className="mb-3">
+                <label className="form-label">Precio Unitario</label>
+                <input name="precioUnitario" className="form-control" value={formData.precioUnitario} onChange={handleChange} placeholder="Ej: MB, GB, unidad" />
+            </div>
+
+            <h4 className="mt-4">Esquema</h4>
+            <div className="mb-3">
+                <label className="form-label">Nombre</label>
+                <input name="esquemaNombre" className="form-control" value={formData.esquemaNombre} onChange={handleChange} />
+            </div>
+
+            <div className="mb-3">
+                <label className="form-label">Nombre físico</label>
+                <input name="esquemaNombreFisico" className="form-control" value={formData.esquemaNombreFisico} onChange={handleChange} />
+            </div>
+
+            <div className="mb-3">
+                <label className="form-label">Tipo lógico</label>
+                <select name="esquemaTipoLogico" className="form-select" value={formData.esquemaTipoLogico} onChange={handleChange}>
+                    <option value="">Seleccionar tipo lógico</option>
+                    <option value="cuerda">Cuerda</option>
+                    <option value="fecha">Fecha</option>
+                    <option value="número">Número</option>
+                    <option value="entero">Entero</option>
+                    <option value="objeto">Objeto</option>
+                    <option value="arreglo">Arreglo</option>
+                    <option value="booleano">Booleano</option>
                 </select>
             </div>
 
