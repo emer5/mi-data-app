@@ -23,9 +23,6 @@ const Navbar: React.FC = () => {
             <NavLink to="/contratos" style={({ isActive }) => isActive ? activeStyle : undefined}>
                 Contratos
             </NavLink>
-            <NavLink to="/equipos/nuevo" style={({ isActive }) => isActive ? activeStyle : undefined}>
-                Equipos de dominio
-            </NavLink>
         </nav>
     );
 };
