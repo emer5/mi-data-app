@@ -327,6 +327,124 @@ try {
             }
             break;
 
+            // == DATOS OPERATIVOS ==
+        case 'get_datos_operativos':
+            $result = mysqli_query($conn, "SELECT * FROM DatoOperativo ORDER BY nombre_dato");
+            if (!$result) {
+                throw new Exception("Error al obtener datos operativos: " . mysqli_error($conn));
+            }
+            $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
+            $status_code = 200;
+            break;
+
+        case 'add_dato_operativo':
+            if (
+                isset($request_data['nombre_dato'], $request_data['tipo_dato']) &&
+                noContieneNumeros($request_data['nombre_dato']) // Asumiendo que el nombre no debe ser solo números
+                // Validar tipo_dato si es necesario (ej. que esté en una lista permitida)
+            ) {
+                $nombre = mysqli_real_escape_string($conn, $request_data['nombre_dato']);
+                $tipo = mysqli_real_escape_string($conn, $request_data['tipo_dato']);
+                
+                $largo_val = isset($request_data['largo_dato']) && is_numeric($request_data['largo_dato']) 
+                             ? (int)$request_data['largo_dato'] 
+                             : "NULL";
+                
+                $desc_raw = $request_data['descripcion_dato'] ?? null;
+                $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
+                
+                $regla_raw = $request_data['regla_negocio'] ?? null;
+                $regla = $regla_raw ? "'" . mysqli_real_escape_string($conn, $regla_raw) . "'" : "NULL";
+
+                $sql = "INSERT INTO DatoOperativo (nombre_dato, tipo_dato, largo_dato, descripcion_dato, regla_negocio) 
+                        VALUES ('$nombre', '$tipo', $largo_val, $desc, $regla)";
+                
+                if (mysqli_query($conn, $sql)) {
+                    $response = ['message' => 'Dato Operativo creado', 'id' => mysqli_insert_id($conn)];
+                    $status_code = 201;
+                } else {
+                    throw new Exception("Error al crear dato operativo: " . mysqli_error($conn));
+                }
+            } else {
+                $response = ['message' => 'Datos inválidos (nombre y tipo son requeridos)'];
+                $status_code = 400;
+            }
+            break;
+
+        case 'update_dato_operativo':
+            if (
+                isset($request_data['id_dato_operativo'], $request_data['nombre_dato'], $request_data['tipo_dato']) &&
+                noContieneNumeros($request_data['nombre_dato'])
+            ) {
+                $id = (int)$request_data['id_dato_operativo'];
+                $nombre = mysqli_real_escape_string($conn, $request_data['nombre_dato']);
+                $tipo = mysqli_real_escape_string($conn, $request_data['tipo_dato']);
+                
+                $largo_val = isset($request_data['largo_dato']) && $request_data['largo_dato'] !== '' && is_numeric($request_data['largo_dato'])
+                             ? (int)$request_data['largo_dato'] 
+                             : "NULL";
+                
+                $desc_raw = $request_data['descripcion_dato'] ?? null;
+                $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
+                
+                $regla_raw = $request_data['regla_negocio'] ?? null;
+                $regla = $regla_raw ? "'" . mysqli_real_escape_string($conn, $regla_raw) . "'" : "NULL";
+
+                $sql = "UPDATE DatoOperativo SET 
+                            nombre_dato = '$nombre', 
+                            tipo_dato = '$tipo', 
+                            largo_dato = $largo_val, 
+                            descripcion_dato = $desc, 
+                            regla_negocio = $regla
+                        WHERE id_dato_operativo = $id";
+                
+                error_log("SQL Update Dato Operativo: " . $sql); // Para depuración
+
+                if (mysqli_query($conn, $sql)) {
+                    if (mysqli_affected_rows($conn) > 0) {
+                        $response = ['message' => 'Dato Operativo actualizado'];
+                    } else {
+                        $response = ['message' => 'Dato Operativo no encontrado o datos sin cambios'];
+                    }
+                    $status_code = 200;
+                } else {
+                    throw new Exception("Error al actualizar dato operativo: " . mysqli_error($conn));
+                }
+            } else {
+                $response = ['message' => 'Datos inválidos para actualizar (ID, nombre y tipo son requeridos)'];
+                $status_code = 400;
+            }
+            break;
+
+        case 'delete_dato_operativo':
+            if (isset($request_data['id_dato_operativo'])) {
+                $id = (int)$request_data['id_dato_operativo'];
+                // ANTES DE BORRAR, DEBERÍAS VERIFICAR SI ESTÁ SIENDO USADO EN LA TABLA DE UNIÓN ProductoDato_DatoOperativo
+                // Si lo está, podrías impedir el borrado o borrar las asociaciones.
+                // Por ahora, borrado directo:
+                $sql = "DELETE FROM DatoOperativo WHERE id_dato_operativo = $id";
+                if (mysqli_query($conn, $sql)) {
+                    if (mysqli_affected_rows($conn) > 0) {
+                        $response = ['message' => 'Dato Operativo eliminado'];
+                        $status_code = 200;
+                    } else {
+                        $response = ['message' => 'Dato Operativo no encontrado'];
+                        $status_code = 404;
+                    }
+                } else {
+                    // Podría fallar por restricciones de FK si ya implementaste la tabla de unión
+                     if (mysqli_errno($conn) == 1451) { 
+                        throw new Exception('No se puede eliminar: Dato Operativo está asociado a Productos de Datos.');
+                    } else {
+                        throw new Exception("Error al eliminar dato operativo: " . mysqli_error($conn));
+                    }
+                }
+            } else {
+                $response = ['message' => 'ID de dato operativo requerido'];
+                $status_code = 400;
+            }
+            break;
+
         default:
             $response = ['message' => 'Acción no especificada o desconocida: ' . $action];
             $status_code = 404;

@@ -1,7 +1,7 @@
 // src/components/ProductDetailsForm.tsx (NUEVO ARCHIVO)
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid'; // Necesitas instalar uuid: npm install uuid @types/uuid
-import { Domain, Product } from '../index'; // Ajusta ruta
+import { Domain, Product,DatoOperativo } from '../index'; // Ajusta ruta
 
 // Definir los posibles estados
 const STATUS_OPTIONS = ['Desarrollo','Pruebas','Producción','Obsoleto','Archivado'];
@@ -9,7 +9,8 @@ const STATUS_OPTIONS = ['Desarrollo','Pruebas','Producción','Obsoleto','Archiva
 interface ProductDetailsFormProps {
     productType: string; // Tipo recibido de la página anterior
     domains: Domain[];
-    onSave: (data: Partial<Product>,isEditing: boolean) => Promise<boolean>;
+    datosOperativos: DatoOperativo[];
+    onSave: (data: Partial<Product> & { ids_datos_operativos?: number[] }, isEditing: boolean) => Promise<boolean>;
     onCancel: () => void;
     isLoading: boolean;
     initialData?: Partial<Product> | null; // Para reutilizar en edición
@@ -18,6 +19,7 @@ interface ProductDetailsFormProps {
 const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
     productType,
     domains,
+    datosOperativos, 
     onSave,
     onCancel,
     isLoading,
@@ -35,7 +37,7 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
     const [descripcion, setDescripcion] = useState('');
     // El tipo del producto se establecerá desde initialData o productType
     const [currentProductType, setCurrentProductType] = useState<string>('');
-
+    const [selectedDatosOperativosIds, setSelectedDatosOperativosIds] = useState<number[]>([]);
 
     // Preseleccionar el primer dominio si existe
     useEffect(() => {
@@ -48,6 +50,7 @@ const ProductDetailsForm: React.FC<ProductDetailsFormProps> = ({
             setStatus(initialData.estado || '');
             setDescripcion(initialData.descripcion_producto_dato || '');
             setCurrentProductType(initialData.tipo || ''); // Usar el tipo del producto existente
+            
         } else {
             // Para un nuevo producto
             setIdentificador(uuidv4()); // Generar UUID nuevo

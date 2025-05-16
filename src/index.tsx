@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import DatosOperativosPage from './pages/DatosOperativosPage';
 // import '../css/index.css'; // Opcional: Si quieres cargar CSS global vía Webpack en lugar de index.html
 
 // --- Importa tus páginas y componentes ---
@@ -39,6 +40,18 @@ export interface Contract {
     id_dominio_consumidor: number;
     nombre_producto_dato?: string;      // Para mostrar en UI, viene de un JOIN
     nombre_dominio_consumidor?: string; // Para mostrar en UI, viene de un JOIN
+}
+
+// index.tsx
+// ... (otras interfaces) ...
+export interface DatoOperativo {
+    id_dato_operativo: number;
+    nombre_dato: string;
+    tipo_dato: 'Numerico' | 'Texto' | string; // Ajusta si tienes más tipos
+    largo_dato?: number | null;
+    descripcion_dato?: string | null;
+    regla_negocio?: string | null;
+    fecha_creacion?: string;
 }
 
 // --- Interfaces para Props ---
@@ -103,22 +116,29 @@ const App: React.FC = () => {
     const [consumingDomainId, setConsumingDomainId] = useState<number | ''>('');
     const [contractName, setContractName] = useState<string>('');
     const [contractDescription, setContractDescription] = useState<string>('');
+    const [datosOperativos, setDatosOperativos] = useState<DatoOperativo[]>([]);
+    // (Opcional) Estados para el formulario de DatoOperativo si lo haces modal o en la misma página
+    const [showDatoOperativoForm, setShowDatoOperativoForm] = useState<boolean>(false);
+    const [currentDatoOperativo, setCurrentDatoOperativo] = useState<Partial<DatoOperativo> | null>(null);
 
+    
     // --- Carga inicial (sin cambios) ---
     const fetchData = useCallback(async (showLoadingIndicator = true) => {
         if (showLoadingIndicator) setLoading(true);
         setError(null);
         console.log("Fetching data...");
         try {
-            const [domainsData, productsData, contractsData] = await Promise.all([
-                apiRequest<Domain[]>('get_domains', 'GET'),
-                apiRequest<Product[]>('get_products', 'GET'),
-                apiRequest<Contract[]>('get_contracts', 'GET')
+            const [domainsData, productsData, contractsData, datosOpData] = await Promise.all([ // <--- Añadido datosOpData
+                apiRequest<Domain[]>('get_domains'),
+                apiRequest<Product[]>('get_products'),
+                apiRequest<Contract[]>('get_contracts'),
+                apiRequest<DatoOperativo[]>('get_datos_operativos') // <--- Nueva llamada
             ]);
-            console.log("Data received:", { domainsData, productsData, contractsData });
+            console.log("Data received:", { domainsData, productsData, contractsData, datosOpData });
             setDomains(Array.isArray(domainsData) ? domainsData : []);
             setProducts(Array.isArray(productsData) ? productsData : []);
             setContracts(Array.isArray(contractsData) ? contractsData : []);
+            setDatosOperativos(Array.isArray(datosOpData) ? datosOpData : []); // <--- Setear estado
         } catch (err) {
             console.error("Error fetching data:", err);
             const errorMsg = err instanceof Error ? err.message : 'Error al cargar datos';
@@ -293,6 +313,37 @@ const App: React.FC = () => {
         }
     };
 
+    const handleSaveDatoOperativo = async (datoOpData: Partial<DatoOperativo>): Promise<boolean> => {
+        setError(null); setLoading(true); let success = false;
+        try {
+            const action = datoOpData.id_dato_operativo ? 'update_dato_operativo' : 'add_dato_operativo';
+            // El backend espera POST para ambos, pero podríamos ser más semánticos con PUT para update
+            // const method = datoOpData.id_dato_operativo ? 'PUT' : 'POST'; 
+            await apiRequest(action, 'POST', datoOpData);
+            setShowDatoOperativoForm(false); // Si usas un formulario modal/visible
+            setCurrentDatoOperativo(null);  // Si usas un formulario modal/visible
+            await fetchData(false);
+            success = true;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Error desconocido al guardar dato operativo';
+            setError(`Error al guardar Dato Operativo: ${errorMsg}`);
+        } finally { setLoading(false); }
+        return success;
+    };
+
+    const handleDeleteDatoOperativo = async (id: number): Promise<void> => {
+        if (!window.confirm('¿Seguro que quieres eliminar este Dato Operativo?')) return;
+        setError(null); setLoading(true);
+        try {
+            await apiRequest('delete_dato_operativo', 'POST', { id_dato_operativo: id });
+            await fetchData(false);
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Error desconocido al eliminar dato operativo';
+            setError(`Error al eliminar Dato Operativo: ${errorMsg}`);
+        } finally { setLoading(false); }
+    };
+
+
 
     // --- Handlers para UI (sin cambios, excepto el nombre de la función de contrato) ---
     const handleEditDomain = (domain: Domain) => { setError(null); setCurrentDomain(domain); setShowDomainForm(true); };
@@ -308,7 +359,11 @@ const App: React.FC = () => {
         setProductToConsume(product); setConsumingDomainId(''); setContractName(`Contrato para ${product.nombre_producto_dato}`); setContractDescription(''); setShowConsumeModal(true);
     };
     const handleCloseConsumeModal = () => { setError(null); setShowConsumeModal(false); setProductToConsume(null); };
-
+    // Handlers para UI del formulario de Dato Operativo (si es modal o en la misma página)
+    const handleAddNewDatoOperativo = () => { setError(null); setCurrentDatoOperativo(null); setShowDatoOperativoForm(true); };
+    const handleEditDatoOperativo = (datoOp: DatoOperativo) => { setError(null); setCurrentDatoOperativo(datoOp); setShowDatoOperativoForm(true); };
+    const handleCancelDatoOperativoForm = () => { setError(null); setShowDatoOperativoForm(false); setCurrentDatoOperativo(null);};
+    
 
     // --- Renderizado ---
     return (
@@ -391,6 +446,25 @@ const App: React.FC = () => {
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
                 </Routes>
+                 <Routes>
+                {/* ... otras rutas ... */}
+                <Route path="/datos-operativos" element={
+                    <DatosOperativosPage
+                        datosOperativos={datosOperativos}
+                        loading={loading}
+                        error={error}
+                        onSave={handleSaveDatoOperativo}
+                        onDelete={handleDeleteDatoOperativo}
+                        showForm={showDatoOperativoForm}
+                        currentDatoOperativo={currentDatoOperativo}
+                        onAddNew={handleAddNewDatoOperativo}
+                        onEdit={handleEditDatoOperativo}
+                        onCancelForm={handleCancelDatoOperativoForm}
+                    />
+                } />
+                {/* ... ruta comodín ... */}
+            </Routes>   
+                    
             </div>
         </BrowserRouter>
     );

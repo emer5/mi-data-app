@@ -26,6 +26,9 @@ const Navbar: React.FC = () => {
             <NavLink to="/equipos/nuevo" style={({ isActive }) => isActive ? activeStyle : undefined}>
                 Equipos de dominio
             </NavLink>
+            <NavLink to="/datos-operativos" style={({ isActive }) => isActive ? activeStyle : undefined}>
+            Datos Operativos
+            </NavLink>
         </nav>
     );
 };
