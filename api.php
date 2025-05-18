@@ -71,23 +71,25 @@ $response = ['message' => 'Acción no válida'];
 $status_code = 400;
 try {
     error_log("API recibió acción: '" . ($action ?? 'NULL') . "' con método: " . $_SERVER['REQUEST_METHOD']);
-    if ($request_data) { error_log("API recibió datos del cuerpo: " . json_encode($request_data)); }
+    if ($request_data) {
+        error_log("API recibió datos del cuerpo: " . json_encode($request_data));
+    }
 
 
     switch ($action) {
         // == DOMINIOS ==
         case 'get_domains':
-        // Modificamos la consulta para incluir el nombre del dominio padre
-        $sql = "SELECT d.*, dp.nombre_dominio as nombre_dominio_padre 
+            // Modificamos la consulta para incluir el nombre del dominio padre
+            $sql = "SELECT d.*, dp.nombre_dominio as nombre_dominio_padre 
                 FROM Dominio d
                 LEFT JOIN Dominio dp ON d.id_dominio_padre = dp.id_dominio
                 ORDER BY d.nombre_dominio";
-        $result = mysqli_query($conn, $sql);
-        if (!$result)
-            throw new Exception("Error al obtener dominios: " . mysqli_error($conn));
-        $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
-        $status_code = 200;
-        break;
+            $result = mysqli_query($conn, $sql);
+            if (!$result)
+                throw new Exception("Error al obtener dominios: " . mysqli_error($conn));
+            $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
+            $status_code = 200;
+            break;
 
         case 'add_domain':
             // Validar nuevos campos
@@ -108,10 +110,10 @@ try {
             $desc = mysqli_real_escape_string($conn, trim($request_data['descripcion_dominio']));
             $identificacion = mysqli_real_escape_string($conn, trim($request_data['identificacion_dominio']));
             $tipo_entidad = mysqli_real_escape_string($conn, $request_data['tipo_entidad']);
-            
+
             // id_dominio_padre es opcional
             $id_padre_val = $request_data['id_dominio_padre'] ?? null;
-            $id_padre = ($id_padre_val !== null && $id_padre_val !== '') ? (int)$id_padre_val : null;
+            $id_padre = ($id_padre_val !== null && $id_padre_val !== '') ? (int) $id_padre_val : null;
             $id_padre_sql = $id_padre === null ? "NULL" : $id_padre;
 
             // Verificar unicidad de identificacion_dominio (la BD ya tiene UNIQUE constraint, pero es bueno chequear antes)
@@ -123,7 +125,7 @@ try {
 
             $sql = "INSERT INTO Dominio (nombre_dominio, descripcion_dominio, identificacion_dominio, id_dominio_padre, tipo_entidad) 
                     VALUES ('$nombre', '$desc', '$identificacion', $id_padre_sql, '$tipo_entidad')";
-            
+
             if (mysqli_query($conn, $sql)) {
                 $response = ['message' => ucfirst($tipo_entidad) . ' creado', 'id' => mysqli_insert_id($conn)];
                 $status_code = 201;
@@ -153,9 +155,9 @@ try {
             $desc = mysqli_real_escape_string($conn, trim($request_data['descripcion_dominio']));
             $identificacion = mysqli_real_escape_string($conn, trim($request_data['identificacion_dominio']));
             $tipo_entidad = mysqli_real_escape_string($conn, $request_data['tipo_entidad']);
-            
+
             $id_padre_val = $request_data['id_dominio_padre'] ?? null;
-            $id_padre = ($id_padre_val !== null && $id_padre_val !== '') ? (int)$id_padre_val : null;
+            $id_padre = ($id_padre_val !== null && $id_padre_val !== '') ? (int) $id_padre_val : null;
 
             // Evitar que un dominio sea su propio padre
             if ($id_padre !== null && $id_padre == $id) {
@@ -278,9 +280,8 @@ try {
                 $status_code = 400;
             }
             break;
-        
+
         case 'update_product':
-            // Asegurarse de que el ID del producto está presente
             if (!isset($request_data['id_producto_dato'])) {
                 $response = ['message' => 'ID de producto requerido para actualizar'];
                 $status_code = 400;
@@ -288,14 +289,12 @@ try {
             }
             $id = (int) $request_data['id_producto_dato'];
 
-            // Validaciones (similares a add_product, pero para los campos que permites actualizar)
+            // Validaciones
             if (
                 empty($request_data['nombre_producto_dato']) ||
-                empty($request_data['id_dominio_propietario']) ||
-                !noContieneNumeros($request_data['nombre_producto_dato']) || 
-                !noContieneNumeros($request_data['descripcion_producto_dato'] ?? '')
+                empty($request_data['id_dominio_propietario'])
             ) {
-                $response = ['message' => 'Datos inválidos para actualizar (nombre, dueño requeridos y sin números en nombre/desc)'];
+                $response = ['message' => 'Datos inválidos para actualizar: nombre y dominio propietario son requeridos.'];
                 $status_code = 400;
                 break;
             }
@@ -304,32 +303,25 @@ try {
             $desc_raw = $request_data['descripcion_producto_dato'] ?? null;
             $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
             $owner_id = (int) $request_data['id_dominio_propietario'];
-            
-            // Campos que pueden ser nulos o vacíos
-            $estado = isset($request_data['estado']) && $request_data['estado'] !== '' ? "'" . mysqli_real_escape_string($conn, $request_data['estado']) . "'" : "NULL";
 
-            // NO PERMITIR ACTUALIZAR 'tipo' ni 'identificador_unico' desde aquí.
-            // Esos campos deberían ser inmutables después de la creación.
-            // Si se envían en $request_data, simplemente ignóralos en la consulta SQL UPDATE.
+            $estado = isset($request_data['estado']) && $request_data['estado'] !== ''
+                ? "'" . mysqli_real_escape_string($conn, $request_data['estado']) . "'"
+                : "NULL";
 
             $sql = "UPDATE ProductoDato SET 
-                        nombre_producto_dato = '$nombre', 
-                        descripcion_producto_dato = $desc, 
-                        id_dominio_propietario = $owner_id, 
-                        estado = $estado 
-                    WHERE id_producto_dato = $id";
+                nombre_producto_dato = '$nombre', 
+                descripcion_producto_dato = $desc, 
+                id_dominio_propietario = $owner_id, 
+                estado = $estado 
+            WHERE id_producto_dato = $id";
 
             if (mysqli_query($conn, $sql)) {
                 if (mysqli_affected_rows($conn) > 0) {
                     $response = ['message' => 'Producto actualizado'];
-                    $status_code = 200;
                 } else {
-                    // Podría ser que no se actualizó nada porque los datos eran iguales,
-                    // o que el producto no existía.
-                    // Para ser más precisos, podrías hacer un SELECT primero.
-                    $response = ['message' => 'Producto no encontrado o datos sin cambios'];
-                    $status_code = 200; // O 404 si estás seguro que no existe
+                    $response = ['message' => 'Producto no encontrado o sin cambios'];
                 }
+                $status_code = 200;
             } else {
                 throw new Exception("Error al actualizar producto: " . mysqli_error($conn));
             }
@@ -350,37 +342,38 @@ try {
             break;
 
         case 'add_contract':
-            // Validación de datos ( frontend envía: id_producto_dato, id_dominio_consumidor, nombre_contrato_dato, descripcion_contrato_dato)
             if (
-                isset($request_data['id_producto_dato'], $request_data['id_dominio_consumidor'], $request_data['nombre_contrato_dato']) &&
-                // noContieneNumeros($request_data['nombre_contrato_dato']) && // Validar si el nombre debe o no contener números
-                noContieneNumeros($request_data['descripcion_contrato_dato'] ?? '') // Descripción es opcional para noContieneNumeros
+                isset($request_data['id_producto_dato'], $request_data['id_dominio_consumidor'], $request_data['nombre_contrato_dato'])
             ) {
                 $prod_id = (int) $request_data['id_producto_dato'];
                 $cons_id = (int) $request_data['id_dominio_consumidor'];
                 $nombre = mysqli_real_escape_string($conn, $request_data['nombre_contrato_dato']);
                 $desc_raw = $request_data['descripcion_contrato_dato'] ?? null;
                 $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
-        
-                // Validación adicional: el dominio consumidor no puede ser el mismo que el propietario del producto
+
+                // Evitar contratos entre un dominio y su propio producto
                 $check_owner_sql = "SELECT id_dominio_propietario FROM ProductoDato WHERE id_producto_dato = $prod_id";
                 $owner_result = mysqli_query($conn, $check_owner_sql);
                 if ($owner_row = mysqli_fetch_assoc($owner_result)) {
+                    // Antes bloqueaba contratos internos (propietario = consumidor).
+                    // Ahora permitimos contratos internos si el negocio lo necesita.
+                    // Si quieres registrar un log por seguridad, puedes dejar esto:
                     if ($owner_row['id_dominio_propietario'] == $cons_id) {
-                        throw new Exception("Un dominio no puede crear un contrato para consumir su propio producto.");
+                        error_log("⚠️ Dominio está creando contrato para su propio producto (permitido).");
                     }
+
                 } else {
                     throw new Exception("Producto no encontrado para validar propietario.");
                 }
 
                 $sql = "INSERT INTO ContratoDato (id_producto_dato, id_dominio_consumidor, nombre_contrato_dato, descripcion_contrato_dato) 
-                        VALUES ($prod_id, $cons_id, '$nombre', $desc)";
-        
+                VALUES ($prod_id, $cons_id, '$nombre', $desc)";
+
                 if (mysqli_query($conn, $sql)) {
                     $response = ['message' => 'Contrato creado', 'id' => mysqli_insert_id($conn)];
                     $status_code = 201;
                 } else {
-                    if (mysqli_errno($conn) == 1062) { // Error de clave única (producto-consumidor)
+                    if (mysqli_errno($conn) == 1062) {
                         throw new Exception('Ya existe un contrato para este producto y consumidor.');
                     } else {
                         throw new Exception(mysqli_error($conn));
@@ -388,31 +381,26 @@ try {
                 }
             } else {
                 $missing_fields = [];
-                if (!isset($request_data['id_producto_dato'])) $missing_fields[] = 'id_producto_dato';
-                if (!isset($request_data['id_dominio_consumidor'])) $missing_fields[] = 'id_dominio_consumidor';
-                if (!isset($request_data['nombre_contrato_dato'])) $missing_fields[] = 'nombre_contrato_dato';
-                // if (isset($request_data['nombre_contrato_dato']) && !noContieneNumeros($request_data['nombre_contrato_dato'])) $missing_fields[] = 'nombre_contrato_dato (formato inválido)';
-                // if (isset($request_data['descripcion_contrato_dato']) && !noContieneNumeros($request_data['descripcion_contrato_dato'])) $missing_fields[] = 'descripcion_contrato_dato (formato inválido)';
+                if (!isset($request_data['id_producto_dato']))
+                    $missing_fields[] = 'id_producto_dato';
+                if (!isset($request_data['id_dominio_consumidor']))
+                    $missing_fields[] = 'id_dominio_consumidor';
+                if (!isset($request_data['nombre_contrato_dato']))
+                    $missing_fields[] = 'nombre_contrato_dato';
 
-
-                $response = ['message' => 'Datos inválidos. Campos requeridos: ' . implode(', ', $missing_fields) . '. Nombre y descripción no deben contener solo números.'];
-                // La validación de noContieneNumeros para add_contract fue eliminada parcialmente en tu nuevo código PHP.
-                // Ajusta el mensaje si la lógica de validación cambia.
+                $response = ['message' => 'Datos inválidos. Campos requeridos: ' . implode(', ', $missing_fields)];
                 $status_code = 400;
             }
             break;
 
-        default:
-            $response = ['message' => 'Acción no especificada o desconocida: ' . $action];
-            $status_code = 404;
-            break;
+
     }
 } catch (Exception $e) {
     error_log("API Exception: " . $e->getMessage() . " | Action: " . $action . " | Data: " . json_encode($request_data));
     $response = ['message' => 'Error en el servidor: ' . $e->getMessage()];
     //Devolver el código de estado original si es un error de validación del cliente
     if ($status_code == 400 && strpos($e->getMessage(), "Un dominio no puede crear un contrato") !== false) {
-         // Mantener 400 si es este error específico
+        // Mantener 400 si es este error específico
     } else {
         $status_code = 500; // Error interno del servidor para otros casos
     }

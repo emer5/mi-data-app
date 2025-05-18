@@ -1,5 +1,5 @@
-// 🧩 NUEVO ARCHIVO: src/pages/AddContractDetailsPage.tsx
-import React, { useState, useEffect } from 'react';
+// src/pages/AddContractDetailsPage.tsx
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Domain, Product } from '../index';
 
@@ -8,7 +8,7 @@ interface AddContractDetailsPageProps {
     domains: Domain[];
     onSaveContract: (data: any) => Promise<boolean>;
     loading: boolean;
-    fetchContracts: () => void; // ✅ Agregado para recargar contratos al volver
+    fetchContracts: () => void;
 }
 
 const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
@@ -22,13 +22,14 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
     const [formData, setFormData] = useState({
         nombre: '',
         identificacion: '',
+        version: '0.0.1',
         estado: '',
         dominio: '',
         producto: '',
         responsable: ''
     });
+
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -37,23 +38,25 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
 
     const handleSubmit = async () => {
         setError(null);
-        if (Object.values(formData).some(f => !f)) {
-            setError('Todos los campos son obligatorios.');
-            return;
+        const camposObligatorios = ['nombre', 'identificacion', 'version', 'estado', 'dominio', 'producto', 'responsable'];
+
+        for (const campo of camposObligatorios) {
+            if (!formData[campo as keyof typeof formData]) {
+                setError('Todos los campos son obligatorios.');
+                return;
+            }
         }
 
-        const descripcion = `ID: ${formData.identificacion} | Versión: 0.0.1 | Estado: ${formData.estado} | Responsable: ${formData.responsable}`;
         const payload = {
             id_producto_dato: parseInt(formData.producto),
             id_dominio_consumidor: parseInt(formData.dominio),
             nombre_contrato_dato: formData.nombre,
-            descripcion_contrato_dato: descripcion
+            descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`
         };
 
         const success = await onSaveContract(payload);
         if (success) {
-            setSuccess(true);
-            fetchContracts(); // ✅ Forzar recarga de contratos
+            fetchContracts();
             navigate('/contratos');
         } else {
             setError('No se pudo guardar el contrato.');
@@ -65,6 +68,7 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             <h2>Agregar contrato de datos</h2>
             {error && <div className="alert alert-danger">{error}</div>}
 
+            {/* Fundamentos */}
             <div className="mb-3">
                 <label className="form-label">Nombre del contrato</label>
                 <input name="nombre" className="form-control" value={formData.nombre} onChange={handleChange} />
@@ -73,6 +77,11 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             <div className="mb-3">
                 <label className="form-label">Identificación</label>
                 <input name="identificacion" className="form-control" value={formData.identificacion} onChange={handleChange} />
+            </div>
+
+            <div className="mb-3">
+                <label className="form-label">Versión</label>
+                <input name="version" className="form-control" value={formData.version} onChange={handleChange} />
             </div>
 
             <div className="mb-3">
@@ -107,7 +116,7 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             </div>
 
             <div className="mb-3">
-                <label className="form-label">Responsable (Arrendatario)</label>
+                <label className="form-label">Responsable</label>
                 <input name="responsable" className="form-control" value={formData.responsable} onChange={handleChange} />
             </div>
 

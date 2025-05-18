@@ -31,11 +31,11 @@ const DomainsPage: React.FC<DomainsPageProps> = ({
 
             {showForm && (
                 <DomainFormComponent
-                   initialData={currentDomain}
-                   onSave={onSave}
-                   onCancel={onCancel}
-                   isLoading={loading}
-                   allDomains={domains} // <--- AÑADE ESTA LÍNEA (usa la prop 'domains' de DomainsPage)
+                    initialData={currentDomain}
+                    onSave={onSave}
+                    onCancel={onCancel}
+                    isLoading={loading}
+                    allDomains={domains} // <--- AÑADE ESTA LÍNEA (usa la prop 'domains' de DomainsPage)
                 />
             )}
 
@@ -49,10 +49,10 @@ const DomainsPage: React.FC<DomainsPageProps> = ({
                         <li key={domain.id_dominio}>
                             <div>
                                 <strong>{domain.nombre_dominio}</strong> ({domain.tipo_entidad})
-                                {domain.identificacion_dominio && <small style={{display: 'block', color: '#555'}}>ID: {domain.identificacion_dominio}</small>}
+                                {domain.identificacion_dominio && <small style={{ display: 'block', color: '#555' }}>ID: {domain.identificacion_dominio}</small>}
                                 {/* La descripción puede seguir siendo descripción_dominio */}
                                 <span>{domain.descripcion_dominio}</span>
-                                {domain.nombre_dominio_padre && <small style={{display: 'block', color: '#777'}}>Principal: {domain.nombre_dominio_padre}</small>}
+                                {domain.nombre_dominio_padre && <small style={{ display: 'block', color: '#777' }}>Principal: {domain.nombre_dominio_padre}</small>}
                             </div>
                             <div className="actions">
                                 <button className="edit" onClick={() => onEdit(domain)} disabled={loading}>E</button>

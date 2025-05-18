@@ -1,4 +1,4 @@
-import React , { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 // Asegúrate que la interfaz Product importada incluya owner_text y nombre_dominio_propietario
 import { Product, Domain, Contract, ConsumeProductModalProps } from '../index';
@@ -73,7 +73,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
     onCreateContract, onCloseConsumeModal,
     ConsumeProductModalComponent
 }) => {
-     const pageLoading = loading && products.length === 0;
+    const pageLoading = loading && products.length === 0;
     const navigate = useNavigate();
     const [viewMode, setViewMode] = useState<'table' | 'mesh'>('table');
 
@@ -144,7 +144,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
     };
 
     const handleGoToSelectType = () => { navigate('/productos/seleccionar-tipo'); };
-     const handleEditProductClick = (productToEdit: Product) => {
+    const handleEditProductClick = (productToEdit: Product) => {
         // <<--- 4. USAR navigate --- >>
         navigate(`/productos/editar/${productToEdit.id_producto_dato}`);
     };
@@ -152,18 +152,18 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
 
     return (
         <div className="page-container">
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                 <h2>Productos ({products.length})</h2>
-                 <div className="product-view-actions">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h2>Productos ({products.length})</h2>
+                <div className="product-view-actions">
                     <button className="add-new" onClick={toggleViewMode} style={{ marginRight: '10px' }}>
                         {viewMode === 'table' ? 'Vista de Malla' : 'Vista de Tabla'}
                     </button>
                     <button className="add-new" onClick={handleGoToSelectType} disabled={loading || domains.length === 0}>
                         + Añadir Producto de Datos
                     </button>
-                 </div>
-             </div>
-            {domains.length === 0 && !loading && <p><small style={{color: 'orange'}}>Advertencia: Debes crear al menos un dominio.</small></p>}
+                </div>
+            </div>
+            {domains.length === 0 && !loading && <p><small style={{ color: 'orange' }}>Advertencia: Debes crear al menos un dominio.</small></p>}
 
             {pageLoading && !error && <div className="loading-message">Cargando productos...</div>}
             {!pageLoading && products.length === 0 && !error && <p>No hay productos creados.</p>}
@@ -199,7 +199,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
                                         </div>
                                     </td>
                                     <td>
-                                         <div className="cell-content">
+                                        <div className="cell-content">
                                             <span className="table-icon">[d]</span>
                                             {product.tipo || 'N/A'}
                                         </div>
@@ -217,7 +217,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
                                         <div className="actions">
                                             <button className="edit" onClick={() => handleEditProductClick(product)} disabled={loading} title="Editar Producto">E</button>
                                             <button className="delete" onClick={() => onDelete(product.id_producto_dato)} disabled={loading} title="Eliminar Producto">X</button>
-                                         </div>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -237,9 +237,9 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
                         onConnect={onConnect}
                         nodeTypes={nodeTypes} // Pasa nuestros tipos de nodo personalizados
                         fitView                   // Ajusta la vista para que todos los nodos sean visibles
-                        // fitViewOptions={{ padding: 0.1 }} // Opcional: padding para fitView
-                        // nodesDraggable={false} // Descomenta si no quieres que los nodos se puedan arrastrar
-                        // nodesConnectable={false} // Descomenta si no quieres que se puedan conectar manualmente
+                    // fitViewOptions={{ padding: 0.1 }} // Opcional: padding para fitView
+                    // nodesDraggable={false} // Descomenta si no quieres que los nodos se puedan arrastrar
+                    // nodesConnectable={false} // Descomenta si no quieres que se puedan conectar manualmente
                     >
                         <Controls /> {/* Controles de zoom y pan */}
                         <Background gap={16} color="#f0f0f0" /> {/* Fondo con rejilla */}
@@ -250,12 +250,12 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
             {/* MODAL (sin cambios) */}
             {showConsumeModal && productToConsume && (
                 // ... tu modal existente ...
-                 <ConsumeProductModalComponent
-                   product={productToConsume} domains={domains.filter(d => d.id_dominio !== productToConsume.id_dominio_propietario)}
-                   contractName={contractName} contractDescription={contractDescription} consumingDomainId={consumingDomainId}
-                   onContractNameChange={onContractNameChange} onContractDescriptionChange={onContractDescriptionChange} onConsumingDomainChange={onConsumingDomainChange}
-                   onCreate={onCreateContract} onClose={onCloseConsumeModal} isLoading={loading}
-               />
+                <ConsumeProductModalComponent
+                    product={productToConsume} domains={domains.filter(d => d.id_dominio !== productToConsume.id_dominio_propietario)}
+                    contractName={contractName} contractDescription={contractDescription} consumingDomainId={consumingDomainId}
+                    onContractNameChange={onContractNameChange} onContractDescriptionChange={onContractDescriptionChange} onConsumingDomainChange={onConsumingDomainChange}
+                    onCreate={onCreateContract} onClose={onCloseConsumeModal} isLoading={loading}
+                />
             )}
         </div>
     );

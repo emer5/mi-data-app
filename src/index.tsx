@@ -146,36 +146,36 @@ const App: React.FC = () => {
 
     // --- Funciones CRUD Dominio (sin cambios) ---
     const handleSaveDomain = async (domainData: Partial<Domain>): Promise<void> => {
-    setError(null);
-    // Validación básica (puedes expandirla)
-    if (!domainData.nombre_dominio?.trim() || !domainData.descripcion_dominio?.trim() || !domainData.identificacion_dominio?.trim() || !domainData.tipo_entidad) {
-         setError("Nombre, descripción, identificación y tipo son requeridos."); return;
-    }
-    // ... (otras validaciones si son necesarias) ...
-    // if (!noContieneNumeros(domainData.nombre_dominio) /*|| !noContieneNumeros(domainData.descripcion_dominio)*/) {
-    //      setError("Nombre del dominio no debe contener números."); return;
-    // }
-    setLoading(true);
-    try {
-        const dataToSend: Partial<Domain> = {
-            nombre_dominio: domainData.nombre_dominio,
-            descripcion_dominio: domainData.descripcion_dominio,
-            identificacion_dominio: domainData.identificacion_dominio,
-            // CORRECCIÓN AQUÍ:
-            // domainData.id_dominio_padre ya es number | null gracias al Form.
-            id_dominio_padre: domainData.id_dominio_padre,
-            tipo_entidad: domainData.tipo_entidad,
-        };
+        setError(null);
+        // Validación básica (puedes expandirla)
+        if (!domainData.nombre_dominio?.trim() || !domainData.descripcion_dominio?.trim() || !domainData.identificacion_dominio?.trim() || !domainData.tipo_entidad) {
+            setError("Nombre, descripción, identificación y tipo son requeridos."); return;
+        }
+        // ... (otras validaciones si son necesarias) ...
+        // if (!noContieneNumeros(domainData.nombre_dominio) /*|| !noContieneNumeros(domainData.descripcion_dominio)*/) {
+        //      setError("Nombre del dominio no debe contener números."); return;
+        // }
+        setLoading(true);
+        try {
+            const dataToSend: Partial<Domain> = {
+                nombre_dominio: domainData.nombre_dominio,
+                descripcion_dominio: domainData.descripcion_dominio,
+                identificacion_dominio: domainData.identificacion_dominio,
+                // CORRECCIÓN AQUÍ:
+                // domainData.id_dominio_padre ya es number | null gracias al Form.
+                id_dominio_padre: domainData.id_dominio_padre,
+                tipo_entidad: domainData.tipo_entidad,
+            };
 
-        const action = currentDomain?.id_dominio ? 'update_domain' : 'add_domain';
-        const method = currentDomain?.id_dominio ? 'PUT' : 'POST';
-        const payload = currentDomain?.id_dominio ? { ...dataToSend, id_dominio: currentDomain.id_dominio } : dataToSend;
-        
-        await apiRequest(action, method, payload);
-        setShowDomainForm(false); setCurrentDomain(null); await fetchData(false);
-    } catch (err) {
-         setError(err instanceof Error ? err.message : 'Error al guardar entidad');
-    } finally { setLoading(false); }
+            const action = currentDomain?.id_dominio ? 'update_domain' : 'add_domain';
+            const method = currentDomain?.id_dominio ? 'PUT' : 'POST';
+            const payload = currentDomain?.id_dominio ? { ...dataToSend, id_dominio: currentDomain.id_dominio } : dataToSend;
+
+            await apiRequest(action, method, payload);
+            setShowDomainForm(false); setCurrentDomain(null); await fetchData(false);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error al guardar entidad');
+        } finally { setLoading(false); }
     };
     const handleDeleteDomain = async (id: number): Promise<void> => {
         if (!window.confirm('¿Seguro que quieres eliminar este dominio? Fallará si tiene productos asociados.')) return;
@@ -184,37 +184,37 @@ const App: React.FC = () => {
             await apiRequest('delete_domain', 'POST', { id_dominio: id }); // 'action' no es necesario en el body si se lee del GET/POST action
             await fetchData(false);
         } catch (err) {
-             setError(err instanceof Error ? err.message : 'Error al eliminar dominio');
+            setError(err instanceof Error ? err.message : 'Error al eliminar dominio');
         } finally { setLoading(false); }
     };
 
     // --- Funciones CRUD Producto (sin cambios) ---
     const handleAddProduct = async (productData: Partial<Product>): Promise<boolean> => {
-         setError(null); let success = false;
-         // ... (tus validaciones para añadir un nuevo producto como estaban) ...
-         if (!productData.nombre_producto_dato || !productData.id_dominio_propietario || !productData.tipo || !productData.identificador_unico) {
-             // ...
-             setError(`Faltan campos requeridos para nuevo producto.`); return false;
-         }
-         // ...
-         setLoading(true);
-         try {
-              // Asegúrate que dataToSend SÓLO contenga los campos para un nuevo producto
-              const dataToSend: Partial<Product> = {
-                  nombre_producto_dato: productData.nombre_producto_dato,
-                  descripcion_producto_dato: productData.descripcion_producto_dato?.trim() || null,
-                  id_dominio_propietario: productData.id_dominio_propietario,
-                  tipo: productData.tipo,
-                  identificador_unico: productData.identificador_unico, // Esencial para nuevo
-                  estado: productData.estado?.trim() || null,
-              };
-              await apiRequest('add_product', 'POST', dataToSend);
-              await fetchData(false); success = true;
-          } catch (err) {
-               const errorMsg = err instanceof Error ? err.message : 'Error desconocido al guardar producto';
-               setError(`Error al guardar producto: ${errorMsg}`); success = false;
-          } finally { setLoading(false); }
-         return success;
+        setError(null); let success = false;
+        // ... (tus validaciones para añadir un nuevo producto como estaban) ...
+        if (!productData.nombre_producto_dato || !productData.id_dominio_propietario || !productData.tipo || !productData.identificador_unico) {
+            // ...
+            setError(`Faltan campos requeridos para nuevo producto.`); return false;
+        }
+        // ...
+        setLoading(true);
+        try {
+            // Asegúrate que dataToSend SÓLO contenga los campos para un nuevo producto
+            const dataToSend: Partial<Product> = {
+                nombre_producto_dato: productData.nombre_producto_dato,
+                descripcion_producto_dato: productData.descripcion_producto_dato?.trim() || null,
+                id_dominio_propietario: productData.id_dominio_propietario,
+                tipo: productData.tipo,
+                identificador_unico: productData.identificador_unico, // Esencial para nuevo
+                estado: productData.estado?.trim() || null,
+            };
+            await apiRequest('add_product', 'POST', dataToSend);
+            await fetchData(false); success = true;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : 'Error desconocido al guardar producto';
+            setError(`Error al guardar producto: ${errorMsg}`); success = false;
+        } finally { setLoading(false); }
+        return success;
     };
 
     // NUEVA función para ACTUALIZAR producto
@@ -260,11 +260,11 @@ const App: React.FC = () => {
             await apiRequest('delete_product', 'POST', { id_producto_dato: id });
             await fetchData(false);
         } catch (err) {
-             const errorMsg = err instanceof Error ? err.message : 'Error desconocido al eliminar producto';
-             setError(`Error al eliminar producto: ${errorMsg}`);
+            const errorMsg = err instanceof Error ? err.message : 'Error desconocido al eliminar producto';
+            setError(`Error al eliminar producto: ${errorMsg}`);
         } finally { setLoading(false); }
     };
-    
+
     // --- Funciones CRUD Contrato ---
     // Para el modal de "Consumir Producto" (existente)
     const handleCreateContractFromModal = async (): Promise<void> => {
@@ -325,7 +325,7 @@ const App: React.FC = () => {
     const handleOpenConsumeModal = (product: Product) => {
         setError(null);
         if (domains.length < 2 && (!domains.find(d => d.id_dominio !== product.id_dominio_propietario))) {
-             setError("Necesitas al menos un dominio diferente al propietario para crear un contrato."); return;
+            setError("Necesitas al menos un dominio diferente al propietario para crear un contrato."); return;
         }
         const otherDomains = domains.filter(d => d.id_dominio !== product.id_dominio_propietario);
         if (otherDomains.length === 0) { setError("No hay otros dominios disponibles para consumir este producto."); return; }
@@ -340,7 +340,7 @@ const App: React.FC = () => {
             <div>
                 <h1>Gestión Data Mesh Simple (XAMPP/PHP)</h1>
                 <Navbar />
-                {error && <div className="error-message">{error} <button onClick={() => setError(null)} style={{ marginLeft: '10px', padding: '2px 5px', cursor: 'pointer', border:'none', background:'transparent', color:'red', fontWeight:'bold' }}>X</button></div>}
+                {error && <div className="error-message">{error} <button onClick={() => setError(null)} style={{ marginLeft: '10px', padding: '2px 5px', cursor: 'pointer', border: 'none', background: 'transparent', color: 'red', fontWeight: 'bold' }}>X</button></div>}
                 {/* No mostrar "Cargando..." si solo se está recargando en segundo plano */}
                 {loading && <div className="loading-message">Cargando...</div>}
 
@@ -348,13 +348,13 @@ const App: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/dominios" element={
-                    <DomainsPage
-                        domains={domains} // 'domains' del estado de App, que ya se usa para el listado y el form
-                        loading={loading} error={error}
-                        onAddNew={handleAddNewDomain} onEdit={handleEditDomain} onDelete={handleDeleteDomain}
-                        showForm={showDomainForm} currentDomain={currentDomain}
-                        onSave={handleSaveDomain} onCancel={handleCancelDomainForm}
-                        DomainFormComponent={DomainForm} // <--- Pasa el componente DomainForm directamente
+                        <DomainsPage
+                            domains={domains} // 'domains' del estado de App, que ya se usa para el listado y el form
+                            loading={loading} error={error}
+                            onAddNew={handleAddNewDomain} onEdit={handleEditDomain} onDelete={handleDeleteDomain}
+                            showForm={showDomainForm} currentDomain={currentDomain}
+                            onSave={handleSaveDomain} onCancel={handleCancelDomainForm}
+                            DomainFormComponent={DomainForm} // <--- Pasa el componente DomainForm directamente
                         />
                     } />
                     <Route path="/productos" element={
@@ -369,7 +369,7 @@ const App: React.FC = () => {
                             ConsumeProductModalComponent={ConsumeProductModal}
                         />
                     } />
-                    <Route path="/productos/seleccionar-tipo" element={ <SelectProductTypePage /> } />
+                    <Route path="/productos/seleccionar-tipo" element={<SelectProductTypePage />} />
                     <Route path="/productos/nuevo/detalles" element={
                         <AddProductDetailsPage
                             domains={domains}
@@ -379,22 +379,22 @@ const App: React.FC = () => {
                     } />
 
                     {/* NUEVA RUTA PARA EDITAR PRODUCTO */}
-                <Route path="/productos/editar/:idProducto" element={
-                    <EditProductPage
-                        products={products} // Pasa la lista completa para que encuentre el producto
-                        domains={domains}
-                        onUpdateProduct={handleUpdateProduct} // Nueva función para actualizar
-                        loading={loading}
-                        fetchProducts={() => fetchData(false)} // Para recargar la lista
-                    />
-                } />
-                
+                    <Route path="/productos/editar/:idProducto" element={
+                        <EditProductPage
+                            products={products} // Pasa la lista completa para que encuentre el producto
+                            domains={domains}
+                            onUpdateProduct={handleUpdateProduct} // Nueva función para actualizar
+                            loading={loading}
+                            fetchProducts={() => fetchData(false)} // Para recargar la lista
+                        />
+                    } />
+
                     <Route path="/contratos" element={
-                        <ContractsPage 
-                            contracts={contracts} 
-                            loading={loading} 
-                            error={error} 
-                        />} 
+                        <ContractsPage
+                            contracts={contracts}
+                            loading={loading}
+                            error={error}
+                        />}
                     />
                     {/* Nuevas Rutas para Contratos */}
                     <Route path="/contratos/nuevo" element={<SelectContractTypePage />} />
@@ -422,13 +422,13 @@ const App: React.FC = () => {
 
 // --- Renderizar la aplicación ---
 const rootElement = document.getElementById('root');
-if (rootElement) { 
-    const root = ReactDOM.createRoot(rootElement); 
+if (rootElement) {
+    const root = ReactDOM.createRoot(rootElement);
     root.render(
         // <React.StrictMode> // StrictMode puede causar doble renderizado en desarrollo, útil para detectar bugs.
-            <App />
+        <App />
         // </React.StrictMode>
-    ); 
+    );
 }
 else { console.error("FATAL: Elemento #root no encontrado en index.html"); }
 
@@ -523,7 +523,7 @@ const DomainForm: React.FC<DomainFormProps> = ({ initialData, onSave, onCancel, 
                                 maxLength={300}
                                 required
                             />
-                             <p className="help-text">Descripción detallada.</p>
+                            <p className="help-text">Descripción detallada.</p>
                         </div>
 
                         <div className="form-group">
@@ -608,17 +608,17 @@ const ConsumeProductModal: React.FC<ConsumeProductModalProps> = ({ product, doma
                 <form onSubmit={handleSubmit}>
                     <div>
                         <label htmlFor="consuming-domain-modal">Dominio Consumidor:</label>
-                        <select 
-                            id="consuming-domain-modal" 
-                            value={consumingDomainId} 
-                            onChange={(e) => onConsumingDomainChange(e.target.value ? Number(e.target.value) : '')} 
-                            required 
+                        <select
+                            id="consuming-domain-modal"
+                            value={consumingDomainId}
+                            onChange={(e) => onConsumingDomainChange(e.target.value ? Number(e.target.value) : '')}
+                            required
                             disabled={isLoading || availableDomains.length === 0}
                         >
                             <option value="" disabled>Seleccione...</option>
                             {availableDomains.map(domain => (<option key={domain.id_dominio} value={domain.id_dominio}>{domain.nombre_dominio}</option>))}
                         </select>
-                        {availableDomains.length === 0 && <p><small style={{color:'red'}}>No hay otros dominios disponibles.</small></p>}
+                        {availableDomains.length === 0 && <p><small style={{ color: 'red' }}>No hay otros dominios disponibles.</small></p>}
                     </div>
                     <div>
                         <label htmlFor="contract-name-modal">Nombre Contrato:</label>
