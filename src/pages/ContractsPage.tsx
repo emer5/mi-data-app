@@ -1,6 +1,7 @@
 import React from 'react';
 import { Contract } from '../index';
-
+import { Link } from 'react-router-dom';
+import '../../css/ContractsPage.css'; // ✅ Nueva línea: importa los estilos
 
 interface ContractsPageProps {
     contracts: Contract[];
@@ -13,6 +14,7 @@ const ContractsPage: React.FC<ContractsPageProps> = ({ contracts, loading, error
         <div className="contracts-page">
             <div className="contracts-header">
                 <h2>Contratos de Datos ({contracts.length})</h2>
+                <Link to="/contratos/nuevo" className="btn btn-primary">+ Agregar Contrato</Link>
             </div>
 
             {loading && <div className="loading">Cargando contratos...</div>}
