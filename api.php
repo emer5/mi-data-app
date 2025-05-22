@@ -144,10 +144,22 @@ try {
 
         // == PRODUCTOS ==
         case 'get_products':
-            $sql = "SELECT pd.*, d.nombre_dominio as nombre_dominio_propietario FROM ProductoDato pd JOIN Dominio d ON pd.id_dominio_propietario = d.id_dominio ORDER BY pd.nombre_producto_dato";
+            // Modificamos la consulta para incluir los datos operativos asociados
+            $sql = "SELECT 
+                        pd.*, 
+                        d.nombre_dominio as nombre_dominio_propietario,
+                        GROUP_CONCAT(do.nombre_dato ORDER BY do.nombre_dato SEPARATOR ', ') as nombres_datos_operativos_asociados
+                    FROM ProductoDato pd 
+                    JOIN Dominio d ON pd.id_dominio_propietario = d.id_dominio
+                    LEFT JOIN ProductoDato_DatoOperativo pdo_do ON pd.id_producto_dato = pdo_do.id_producto_dato
+                    LEFT JOIN DatoOperativo do ON pdo_do.id_dato_operativo = do.id_dato_operativo
+                    GROUP BY pd.id_producto_dato -- Agrupar por producto para que GROUP_CONCAT funcione correctamente
+                    ORDER BY pd.nombre_producto_dato";
+            
             $result = mysqli_query($conn, $sql);
-            if (!$result)
-                throw new Exception(mysqli_error($conn));
+            if (!$result) {
+                throw new Exception("Error al obtener productos y sus datos operativos: " . mysqli_error($conn));
+            }
             $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
             $status_code = 200;
             break;
@@ -370,8 +382,7 @@ try {
                 $status_code = 400;
             }
             break;
-
-        case 'update_dato_operativo':
+            case 'update_dato_operativo':
             if (
                 isset($request_data['id_dato_operativo'], $request_data['nombre_dato'], $request_data['tipo_dato']) &&
                 noContieneNumeros($request_data['nombre_dato'])
@@ -444,11 +455,9 @@ try {
                 $status_code = 400;
             }
             break;
+            
 
-        default:
-            $response = ['message' => 'Acción no especificada o desconocida: ' . $action];
-            $status_code = 404;
-            break;
+
     }
 } catch (Exception $e) {
     error_log("API Exception: " . $e->getMessage() . " | Action: " . $action . " | Data: " . json_encode($request_data));

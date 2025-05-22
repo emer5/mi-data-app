@@ -180,6 +180,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
                                 <th className="col-type">Tipo</th>
                                 <th className="col-status">Estado</th>
                                 <th className="col-output-ports">Puertos de Salida</th>
+                                 <th>Datos Operativos Asociados</th> {/* <<--- NUEVA CABECERA DE COLUMNA */}
                                 <th className="col-actions">Acciones</th>
                             </tr>
                         </thead>
@@ -211,6 +212,9 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
                                                 {product.estado || 'N/A'}
                                             </span>
                                         </div>
+                                    </td>
+                                    <td>
+                                        {product.nombres_datos_operativos_asociados || '-'} {/* Muestra los nombres o un guion */}
                                     </td>
                                     <td><div className="cell-content">-</div></td>
                                     <td className="actions-cell">

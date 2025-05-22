@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import DatosOperativosPage from './pages/DatosOperativosPage';
 // import '../css/index.css'; // Opcional: Si quieres cargar CSS global vía Webpack en lugar de index.html
 
 // --- Importa tus páginas y componentes ---
@@ -15,6 +14,7 @@ import AddProductDetailsPage from './pages/AddProductDetailsPage';
 import SelectContractTypePage from './pages/SelectContractTypePage'; // Nueva importación
 import AddContractDetailsPage from './pages/AddContractDetailsPage';   // Nueva importación
 import EditProductPage from './pages/EditProductPage';
+import DatosOperativosPage from './pages/DatosOperativosPage';
 import Navbar from './components/Navbar';
 
 // --- Interfaces (sin cambios respecto a tu última versión) ---
@@ -30,6 +30,8 @@ export interface Product {
     tipo: string;
     identificador_unico?: string | null;
     estado?: string | null;
+     ids_datos_operativos_asociados?: number[]; // Para cargar al editar (si implementaste esto)
+    nombres_datos_operativos_asociados?: string | null; // <-- NUEVO CAMPO para mostrar en la tabla
 }
 export interface Contract {
     id_contrato_dato: number;
@@ -42,8 +44,6 @@ export interface Contract {
     nombre_dominio_consumidor?: string; // Para mostrar en UI, viene de un JOIN
 }
 
-// index.tsx
-// ... (otras interfaces) ...
 export interface DatoOperativo {
     id_dato_operativo: number;
     nombre_dato: string;
@@ -121,8 +121,8 @@ const App: React.FC = () => {
     const [showDatoOperativoForm, setShowDatoOperativoForm] = useState<boolean>(false);
     const [currentDatoOperativo, setCurrentDatoOperativo] = useState<Partial<DatoOperativo> | null>(null);
 
-    
     // --- Carga inicial (sin cambios) ---
+     // Modificar fetchData para incluir la carga de DatosOperativos
     const fetchData = useCallback(async (showLoadingIndicator = true) => {
         if (showLoadingIndicator) setLoading(true);
         setError(null);
@@ -313,7 +313,7 @@ const App: React.FC = () => {
         }
     };
 
-    const handleSaveDatoOperativo = async (datoOpData: Partial<DatoOperativo>): Promise<boolean> => {
+     const handleSaveDatoOperativo = async (datoOpData: Partial<DatoOperativo>): Promise<boolean> => {
         setError(null); setLoading(true); let success = false;
         try {
             const action = datoOpData.id_dato_operativo ? 'update_dato_operativo' : 'add_dato_operativo';
@@ -359,11 +359,9 @@ const App: React.FC = () => {
         setProductToConsume(product); setConsumingDomainId(''); setContractName(`Contrato para ${product.nombre_producto_dato}`); setContractDescription(''); setShowConsumeModal(true);
     };
     const handleCloseConsumeModal = () => { setError(null); setShowConsumeModal(false); setProductToConsume(null); };
-    // Handlers para UI del formulario de Dato Operativo (si es modal o en la misma página)
     const handleAddNewDatoOperativo = () => { setError(null); setCurrentDatoOperativo(null); setShowDatoOperativoForm(true); };
     const handleEditDatoOperativo = (datoOp: DatoOperativo) => { setError(null); setCurrentDatoOperativo(datoOp); setShowDatoOperativoForm(true); };
     const handleCancelDatoOperativoForm = () => { setError(null); setShowDatoOperativoForm(false); setCurrentDatoOperativo(null);};
-    
 
     // --- Renderizado ---
     return (
@@ -403,21 +401,23 @@ const App: React.FC = () => {
                     <Route path="/productos/nuevo/detalles" element={
                         <AddProductDetailsPage
                             domains={domains}
+                            datosOperativos={datosOperativos}
                             onSaveProduct={handleAddProduct}
                             loading={loading}
                         />
                     } />
 
                     {/* NUEVA RUTA PARA EDITAR PRODUCTO */}
-                <Route path="/productos/editar/:idProducto" element={
-                    <EditProductPage
-                        products={products} // Pasa la lista completa para que encuentre el producto
-                        domains={domains}
-                        onUpdateProduct={handleUpdateProduct} // Nueva función para actualizar
-                        loading={loading}
-                        fetchProducts={() => fetchData(false)} // Para recargar la lista
-                    />
-                } />
+                    <Route path="/productos/editar/:idProducto" element={
+                        <EditProductPage
+                            products={products} // Pasa la lista completa para que encuentre el producto
+                            domains={domains}
+                            datosOperativos={datosOperativos}
+                            onUpdateProduct={handleUpdateProduct} // Nueva función para actualizar
+                            loading={loading}
+                            fetchProducts={() => fetchData(false)} // Para recargar la lista
+                        />
+                    } />
                 
                     <Route path="/contratos" element={
                         <ContractsPage 
@@ -445,6 +445,20 @@ const App: React.FC = () => {
 
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
+                    <Route path="/datos-operativos" element={
+                    <DatosOperativosPage
+                        datosOperativos={datosOperativos}
+                        loading={loading}
+                        error={error}
+                        onSave={handleSaveDatoOperativo}
+                        onDelete={handleDeleteDatoOperativo}
+                        showForm={showDatoOperativoForm}
+                        currentDatoOperativo={currentDatoOperativo}
+                        onAddNew={handleAddNewDatoOperativo}
+                        onEdit={handleEditDatoOperativo}
+                        onCancelForm={handleCancelDatoOperativoForm}
+                    />
+                } />
                 </Routes>
                  <Routes>
                 {/* ... otras rutas ... */}

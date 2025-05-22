@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import ProductDetailsForm from '../components/ProductDetailsForm';
-import { Product, Domain } from '../index'; // Ajusta si es necesario
+import { Product, Domain, DatoOperativo } from '../index'; // Ajusta si es necesario
 
 interface EditProductPageProps {
-    products: Product[]; // Para encontrar el producto a editar
+    products: (Product & { ids_datos_operativos_asociados?: number[] })[]; // Modificado para que products pueda tener esta info
     domains: Domain[];
-    onUpdateProduct: (data: Partial<Product>, isEditing: boolean) => Promise<boolean>; // Recibe isEditing
+    datosOperativos: DatoOperativo[]; // <-- NUEVA PROP
+    onUpdateProduct: (data: Partial<Product> & { ids_datos_operativos?: number[] }, isEditing: boolean) => Promise<boolean>; // Ajustar tipo
     loading: boolean;
     fetchProducts: () => void; // Para recargar productos después de editar
 }
@@ -15,19 +16,22 @@ interface EditProductPageProps {
 const EditProductPage: React.FC<EditProductPageProps> = ({
     products,
     domains,
+    datosOperativos, // <-- Recibir
     onUpdateProduct,
     loading,
     fetchProducts
 }) => {
     const navigate = useNavigate();
     const { idProducto } = useParams<{ idProducto: string }>(); // Obtener el ID de la URL
-    const [productToEdit, setProductToEdit] = useState<Partial<Product> | null>(null);
+    const [productToEdit, setProductToEdit] = useState<(Partial<Product> & { ids_datos_operativos_asociados?: number[] }) | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (idProducto) {
+            // Asegúrate que products aquí sea del tipo correcto
             const foundProduct = products.find(p => p.id_producto_dato.toString() === idProducto);
             if (foundProduct) {
+                // Aquí asumimos que `fetchProducts` en App.tsx ya carga `ids_datos_operativos_asociados`
                 setProductToEdit(foundProduct);
             } else {
                 setError(`Producto con ID ${idProducto} no encontrado.`);
@@ -59,11 +63,11 @@ const EditProductPage: React.FC<EditProductPageProps> = ({
 
     return (
         <div className="page-container">
-            {/* El título ya está dentro de ProductDetailsForm */}
             <ProductDetailsForm
-                productType={productToEdit.tipo || ''} // productType no es tan relevante aquí, pero el form lo espera
+                productType={productToEdit.tipo || ''}
                 domains={domains}
-                onSave={handleSave}
+                datosOperativos={datosOperativos} // <-- PASAR PROP
+                onSave={handleSave} // handleSave aquí es la función local de EditProductPage
                 onCancel={handleCancel}
                 isLoading={loading}
                 initialData={productToEdit}

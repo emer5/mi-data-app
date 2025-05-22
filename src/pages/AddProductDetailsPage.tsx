@@ -1,17 +1,19 @@
 // src/pages/AddProductDetailsPage.tsx (NUEVO ARCHIVO)
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Domain, Product } from '../index'; // Ajusta la ruta si moviste las interfaces
+import { Domain, Product, DatoOperativo } from '../index'; // Ajusta la ruta si moviste las interfaces
 import ProductDetailsForm from '../components/ProductDetailsForm'; // <-- Nuevo componente de formulario
 
 interface AddProductDetailsPageProps {
     domains: Domain[];
+    datosOperativos: DatoOperativo[]; // <-- NUEVA PROP
     onSaveProduct: (data: Partial<Product>) => Promise<boolean>;
     loading: boolean;
 }
 
 const AddProductDetailsPage: React.FC<AddProductDetailsPageProps> = ({
     domains,
+    datosOperativos,
     onSaveProduct,
     loading,
 }) => {
@@ -32,10 +34,10 @@ const AddProductDetailsPage: React.FC<AddProductDetailsPageProps> = ({
         }
     }, [productType, navigate]);
 
-    const handleSave = async (formData: Partial<Product>): Promise<boolean> => {
+    const handleSave = async (formData: Partial<Product> & { ids_datos_operativos?: number[] }): Promise<boolean> => {
         setSaveError(null); // Limpiar error anterior
         // Añadir el tipo recibido al objeto a guardar
-        const dataToSave: Partial<Product> = {
+        const dataToSave: Partial<Product> & { ids_datos_operativos?: number[] } = {
             ...formData,
             tipo: productType || '', // Asegurarse de que el tipo se incluya
         };
@@ -76,13 +78,13 @@ const AddProductDetailsPage: React.FC<AddProductDetailsPageProps> = ({
 
             {saveError && <div className="error-message">{saveError}</div>}
 
-            <ProductDetailsForm // Pasamos el tipo al formulario
+            <ProductDetailsForm
                 productType={productType}
                 domains={domains}
+                datosOperativos={datosOperativos} // <-- PASAR PROP
                 onSave={handleSave}
                 onCancel={handleCancel}
                 isLoading={loading}
-                // initialData es null porque es para un producto nuevo
             />
         </div>
     );
