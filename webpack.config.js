@@ -2,26 +2,23 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'development', // Cambia a 'production' para versión final
+  mode: 'development',
   entry: './src/index.tsx',
   module: {
     rules: [
-      { // Regla para TypeScript (existente)
+      {
         test: /\.tsx?$/,
         use: 'ts-loader',
         exclude: /node_modules/,
       },
-      { // --- NUEVA REGLA PARA CSS ---
-        test: /\.css$/i, // Busca archivos que terminen en .css (case-insensitive)
-        use: ['style-loader', 'css-loader'], // Usa estos loaders
-                                            // css-loader: lee el archivo CSS
-                                            // style-loader: inyecta el CSS en el <head> del HTML
-        // -----------------------------
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'], // Solo esta regla simple para tus estilos
       },
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'], // Mantiene las extensiones resolubles
+    extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
     filename: 'bundle.js',

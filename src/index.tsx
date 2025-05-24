@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 import HomePage from './pages/HomePage';
 import DomainsPage from './pages/DomainsPage';
 import ProductsPage from './pages/ProductsPage';
-import ContractsPage from './pages/ContractsPage';
+import ContractsPage from './pages/ContractsPage'; // esta debe apuntar a TU nueva versión
 import SelectProductTypePage from './pages/SelectProductTypePage';
 import AddProductDetailsPage from './pages/AddProductDetailsPage';
 import SelectContractTypePage from './pages/SelectContractTypePage'; // Nueva importación
@@ -396,6 +396,7 @@ const App: React.FC = () => {
                             error={error}
                         />}
                     />
+
                     {/* Nuevas Rutas para Contratos */}
                     <Route path="/contratos/nuevo" element={<SelectContractTypePage />} />
                     <Route
