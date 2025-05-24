@@ -1,0 +1,96 @@
+/* css/AddContractDetailsPage.css */
+
+.add-contract-page {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 30px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.fundamentals-section,
+.description-info {
+    padding-right: 20px;
+    border-right: 1px solid #e0e0e0;
+}
+
+.fundamentals-section h4,
+.description-info h4 {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.fundamentals-section p,
+.description-info p {
+    font-size: 0.95em;
+    color: #666;
+}
+
+.contract-form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.contract-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.contract-form-group label {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.contract-form-group label.required::after {
+    content: " Obligatorio";
+    color: red;
+    font-size: 0.9em;
+}
+
+.contract-form-group input,
+.contract-form-group select,
+.contract-form-group textarea {
+    padding: 8px;
+    font-size: 1em;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.contract-form-group small {
+    font-size: 0.85em;
+    color: rgba(0, 0, 0, 0.55);
+    font-weight: 400;
+}
+
+.add-contract-button {
+    margin-top: 20px;
+    padding: 10px 25px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.add-contract-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.description-section-container {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 30px;
+    align-items: start;
+    margin-top: 2rem;
+}
+
+.description-fields .mb-3 {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
