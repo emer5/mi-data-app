@@ -371,23 +371,28 @@ case 'add_contract':
             throw new Exception("Producto no encontrado para validar propietario.");
         }
 
-        $sql = "INSERT INTO ContratoDato (
-                    id_producto_dato,
-                    id_dominio_consumidor,
-                    nombre_contrato_dato,
-                    descripcion_contrato_dato,
-                    uso,
-                    proposito,
-                    limitaciones
-                ) VALUES (
-                    $prod_id,
-                    $cons_id,
-                    '$nombre',
-                    $desc,
-                    $uso,
-                    $proposito,
-                    $limitaciones
-                )";
+$esquema_raw = $request_data['esquema'] ?? null;
+$esquema = $esquema_raw ? "'" . mysqli_real_escape_string($conn, $esquema_raw) . "'" : "NULL";
+
+$sql = "INSERT INTO ContratoDato (
+    id_producto_dato,
+    id_dominio_consumidor,
+    nombre_contrato_dato,
+    descripcion_contrato_dato,
+    uso,
+    proposito,
+    limitaciones,
+    esquema
+) VALUES (
+    $prod_id,
+    $cons_id,
+    '$nombre',
+    $desc,
+    $uso,
+    $proposito,
+    $limitaciones,
+    $esquema
+)";
 
         if (mysqli_query($conn, $sql)) {
             $response = ['message' => 'Contrato creado', 'id' => mysqli_insert_id($conn)];
