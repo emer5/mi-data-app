@@ -31,8 +31,12 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
         uso: '',
         proposito: '',
         limitaciones: '',
-        esquema: '' // ✅ agregado
+        esquema_nombre: '',
+        esquema_nombre_fisico: '',
+        esquema_tipo: 'object',
+        esquema_descripcion: ''
     });
+
 
     const [error, setError] = useState<string | null>(null);
 
@@ -62,6 +66,13 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             }
         }
 
+        const esquemaJSON = JSON.stringify({
+            nombre: formData.esquema_nombre,
+            nombre_fisico: formData.esquema_nombre_fisico,
+            tipo: formData.esquema_tipo,
+            descripcion: formData.esquema_descripcion
+        });
+
         const payload = {
             id_producto_dato: parseInt(formData.producto),
             id_dominio_consumidor: parseInt(formData.dominio),
@@ -70,8 +81,9 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             uso: formData.uso,
             proposito: formData.proposito,
             limitaciones: formData.limitaciones,
-            esquema: formData.esquema // ✅ incluido en payload
+            esquema: esquemaJSON
         };
+
 
         const success = await onSaveContract(payload);
         if (success) {
@@ -202,44 +214,82 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                     <div className="schema-info">
                         <h4>Esquema</h4>
                         <p>
-                            En esta sección se describe el esquema del contrato de datos. Es el soporte para la calidad de los datos, que se detalla en la siguiente sección.
-                            Schema admite tanto una representación empresarial de los datos como una implementación física. Permite unirlos entre sí.
+                            En esta sección se describe el esquema del contrato de datos. Es el soporte para la calidad de los datos,
+                            que se detalla en la siguiente sección. Schema admite tanto una representación empresarial de los datos como una
+                            implementación física. Permite unirlos entre sí.
                         </p>
                     </div>
 
                     <div className="schema-fields">
-                        <div className="schema-grid">
-                            <div className="schema-col">
-                                <label>Nombre</label>
-                                <input type="text" placeholder="Nombre del elemento" disabled />
+                        <div className="schema-row">
+                            <div className="schema-item">
+                                <label htmlFor="esquema_nombre">Nombre</label>
+                                <input
+                                    type="text"
+                                    name="esquema_nombre"
+                                    value={formData.esquema_nombre}
+                                    onChange={handleChange}
+                                    placeholder="Nombre del elemento"
+                                    pattern="[A-Za-z\s]+"
+                                    title="Solo letras"
+                                />
+                                <small>Nombre del elemento.</small>
                             </div>
-                            <div className="schema-col">
-                                <label>Nombre físico</label>
-                                <input type="text" placeholder="Nombre físico" disabled />
+
+                            <div className="schema-item">
+                                <label htmlFor="esquema_nombre_fisico">Nombre físico</label>
+                                <input
+                                    type="text"
+                                    name="esquema_nombre_fisico"
+                                    value={formData.esquema_nombre_fisico}
+                                    onChange={handleChange}
+                                    placeholder="Nombre físico"
+                                    pattern="[A-Za-z\s]+"
+                                    title="Solo letras"
+                                />
+                                <small>Nombre físico</small>
                             </div>
-                            <div className="schema-col">
+
+                            <div className="schema-item">
                                 <label>Tipo lógico</label>
-                                <input type="text" value="object" disabled />
+                                <input
+                                    type="text"
+                                    value="object"
+                                    disabled
+                                />
+                                <small>Tipo lógico.</small>
                             </div>
                         </div>
 
                         <div className="schema-description">
-                            <label>Descripción</label>
-                            <textarea placeholder="Descripción del esquema" disabled />
+                            <label htmlFor="esquema_descripcion">Descripción</label>
+                            <textarea
+                                name="esquema_descripcion"
+                                value={formData.esquema_descripcion}
+                                onChange={handleChange}
+                                placeholder="Descripción"
+                            />
+                            <small>Descripción</small>
                         </div>
 
-                        <div className="schema-properties">
-                            <h5>Propiedades</h5>
-                            <div className="schema-prop-row">
-                                <input type="text" placeholder="Nombre" disabled />
-                                <select disabled>
-                                    <option>cu</option>
-                                </select>
-                                <input type="text" placeholder="Tipo físico" disabled />
-                                <input type="text" placeholder="Descripción" disabled />
-                                <button className="disabled-btn" disabled>Calidad</button>
+                        <h5>Propiedades</h5>
+                        <div className="schema-prop-row">
+                            <input type="text" placeholder="Nombre" />
+                            <div className="label-group">
+                                <span className="label-blue">R</span>
+                                <span className="label-blue">U</span>
                             </div>
-                            <button disabled className="disabled-btn">Agregar propiedad</button>
+                            <select>
+                                <option value="cuerda">cuerda</option>
+                                <option value="fecha">fecha</option>
+                                <option value="número">número</option>
+                                <option value="entero">entero</option>
+                                <option value="objeto">objeto</option>
+                                <option value="arreglo">arreglo</option>
+                                <option value="booleano">booleano</option>
+                            </select>
+                            <input type="text" placeholder="Tipo físico" />
+                            <input type="text" placeholder="Descripción" />
                         </div>
                     </div>
                 </div>

@@ -348,19 +348,24 @@ case 'add_contract':
         $prod_id = (int) $request_data['id_producto_dato'];
         $cons_id = (int) $request_data['id_dominio_consumidor'];
         $nombre = mysqli_real_escape_string($conn, $request_data['nombre_contrato_dato']);
-        $desc_raw = $request_data['descripcion_contrato_dato'] ?? null;
-        $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
 
-        // Nuevos campos
+        // Campos no obligatorios
+        $desc_raw = $request_data['descripcion_contrato_dato'] ?? null;
         $uso_raw = $request_data['uso'] ?? null;
         $proposito_raw = $request_data['proposito'] ?? null;
         $limitaciones_raw = $request_data['limitaciones'] ?? null;
+        $esquema_raw = $request_data['esquema'] ?? null;
+        $canal_soporte_raw = $request_data['canal_soporte'] ?? null; // Opcional
 
+        // Escapar los valores si existen, si no usar NULL
+        $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
         $uso = $uso_raw ? "'" . mysqli_real_escape_string($conn, $uso_raw) . "'" : "NULL";
         $proposito = $proposito_raw ? "'" . mysqli_real_escape_string($conn, $proposito_raw) . "'" : "NULL";
         $limitaciones = $limitaciones_raw ? "'" . mysqli_real_escape_string($conn, $limitaciones_raw) . "'" : "NULL";
+        $esquema = $esquema_raw ? "'" . mysqli_real_escape_string($conn, $esquema_raw) . "'" : "NULL";
+        $canal_soporte = $canal_soporte_raw ? "'" . mysqli_real_escape_string($conn, $canal_soporte_raw) . "'" : "NULL";
 
-        // Validación interna opcional
+        // Validación opcional: dominio no sea dueño del producto
         $check_owner_sql = "SELECT id_dominio_propietario FROM ProductoDato WHERE id_producto_dato = $prod_id";
         $owner_result = mysqli_query($conn, $check_owner_sql);
         if ($owner_row = mysqli_fetch_assoc($owner_result)) {
@@ -371,31 +376,31 @@ case 'add_contract':
             throw new Exception("Producto no encontrado para validar propietario.");
         }
 
-$esquema_raw = $request_data['esquema'] ?? null;
-$esquema = $esquema_raw ? "'" . mysqli_real_escape_string($conn, $esquema_raw) . "'" : "NULL";
-
-$sql = "INSERT INTO ContratoDato (
-    id_producto_dato,
-    id_dominio_consumidor,
-    nombre_contrato_dato,
-    descripcion_contrato_dato,
-    uso,
-    proposito,
-    limitaciones,
-    esquema
-) VALUES (
-    $prod_id,
-    $cons_id,
-    '$nombre',
-    $desc,
-    $uso,
-    $proposito,
-    $limitaciones,
-    $esquema
-)";
+        // Insertar en base de datos
+        $sql = "INSERT INTO ContratoDato (
+            id_producto_dato,
+            id_dominio_consumidor,
+            nombre_contrato_dato,
+            descripcion_contrato_dato,
+            uso,
+            proposito,
+            limitaciones,
+            esquema,
+            canal_soporte
+        ) VALUES (
+            $prod_id,
+            $cons_id,
+            '$nombre',
+            $desc,
+            $uso,
+            $proposito,
+            $limitaciones,
+            $esquema,
+            $canal_soporte
+        )";
 
         if (mysqli_query($conn, $sql)) {
-            $response = ['message' => 'Contrato creado', 'id' => mysqli_insert_id($conn)];
+            $response = ['message' => 'Contrato creado correctamente', 'id' => mysqli_insert_id($conn)];
             $status_code = 201;
         } else {
             if (mysqli_errno($conn) == 1062) {
@@ -405,19 +410,16 @@ $sql = "INSERT INTO ContratoDato (
             }
         }
     } else {
+        // Si faltan campos obligatorios
         $missing_fields = [];
-        if (!isset($request_data['id_producto_dato']))
-            $missing_fields[] = 'id_producto_dato';
-        if (!isset($request_data['id_dominio_consumidor']))
-            $missing_fields[] = 'id_dominio_consumidor';
-        if (!isset($request_data['nombre_contrato_dato']))
-            $missing_fields[] = 'nombre_contrato_dato';
+        if (!isset($request_data['id_producto_dato'])) $missing_fields[] = 'id_producto_dato';
+        if (!isset($request_data['id_dominio_consumidor'])) $missing_fields[] = 'id_dominio_consumidor';
+        if (!isset($request_data['nombre_contrato_dato'])) $missing_fields[] = 'nombre_contrato_dato';
 
         $response = ['message' => 'Datos inválidos. Campos requeridos: ' . implode(', ', $missing_fields)];
         $status_code = 400;
     }
     break;
-
 
     }
 } catch (Exception $e) {
