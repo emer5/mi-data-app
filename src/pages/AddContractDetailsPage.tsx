@@ -1,7 +1,7 @@
-// src/pages/AddContractDetailsPage.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Domain, Product } from '../index';
+import '../../css/AddContractDetailsPage.css';
 
 interface AddContractDetailsPageProps {
     products: Product[];
@@ -19,6 +19,7 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
     fetchContracts
 }) => {
     const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         nombre: '',
         identificacion: '',
@@ -26,23 +27,37 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
         estado: '',
         dominio: '',
         producto: '',
-        responsable: ''
+        responsable: '',
+        uso: '',
+        proposito: '',
+        limitaciones: '',
+        esquema: '' // ✅ agregado
     });
 
     const [error, setError] = useState<string | null>(null);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    ) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async () => {
         setError(null);
-        const camposObligatorios = ['nombre', 'identificacion', 'version', 'estado', 'dominio', 'producto', 'responsable'];
+        const camposObligatorios = [
+            'nombre',
+            'identificacion',
+            'version',
+            'estado',
+            'dominio',
+            'producto',
+            'responsable'
+        ];
 
         for (const campo of camposObligatorios) {
             if (!formData[campo as keyof typeof formData]) {
-                setError('Todos los campos son obligatorios.');
+                setError('Todos los campos obligatorios deben completarse.');
                 return;
             }
         }
@@ -51,7 +66,11 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             id_producto_dato: parseInt(formData.producto),
             id_dominio_consumidor: parseInt(formData.dominio),
             nombre_contrato_dato: formData.nombre,
-            descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`
+            descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`,
+            uso: formData.uso,
+            proposito: formData.proposito,
+            limitaciones: formData.limitaciones,
+            esquema: formData.esquema // ✅ incluido en payload
         };
 
         const success = await onSaveContract(payload);
@@ -64,65 +83,171 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
     };
 
     return (
-        <div className="container py-4">
-            <h2>Agregar contrato de datos</h2>
-            {error && <div className="alert alert-danger">{error}</div>}
-
+        <div className="add-contract-page">
             {/* Fundamentos */}
-            <div className="mb-3">
-                <label className="form-label">Nombre del contrato</label>
-                <input name="nombre" className="form-control" value={formData.nombre} onChange={handleChange} />
+            <div className="fundamentals-section">
+                <h4>Fundamentos</h4>
+                <p>Especifica los metadatos del contrato de datos.</p>
             </div>
 
-            <div className="mb-3">
-                <label className="form-label">Identificación</label>
-                <input name="identificacion" className="form-control" value={formData.identificacion} onChange={handleChange} />
-            </div>
+            <div className="contract-form-section">
+                {error && <div className="alert alert-danger">{error}</div>}
 
-            <div className="mb-3">
-                <label className="form-label">Versión</label>
-                <input name="version" className="form-control" value={formData.version} onChange={handleChange} />
-            </div>
+                <div className="contract-form-group">
+                    <label htmlFor="nombre" className="required">Nombre</label>
+                    <input name="nombre" id="nombre" value={formData.nombre} onChange={handleChange} />
+                    <small>Nombre del contrato de datos.</small>
+                </div>
 
-            <div className="mb-3">
-                <label className="form-label">Estado</label>
-                <select name="estado" className="form-select" value={formData.estado} onChange={handleChange}>
-                    <option value="">Seleccionar estado</option>
-                    <option value="Propuesto">Propuesto</option>
-                    <option value="Activo">Activo</option>
-                    <option value="Obsolescente">Obsolescente</option>
-                    <option value="Jubilado">Jubilado</option>
-                </select>
-            </div>
+                <div className="contract-form-group">
+                    <label htmlFor="identificacion" className="required">Identificación</label>
+                    <input name="identificacion" id="identificacion" value={formData.identificacion} onChange={handleChange} />
+                    <small>Identificador único como UUID o URN.</small>
+                </div>
 
-            <div className="mb-3">
-                <label className="form-label">Dominio consumidor</label>
-                <select name="dominio" className="form-select" value={formData.dominio} onChange={handleChange}>
-                    <option value="">Seleccionar dominio</option>
-                    {domains.map(d => (
-                        <option key={d.id_dominio} value={d.id_dominio}>{d.nombre_dominio}</option>
-                    ))}
-                </select>
-            </div>
+                <div className="contract-form-group">
+                    <label htmlFor="version" className="required">Versión</label>
+                    <input name="version" id="version" value={formData.version} onChange={handleChange} />
+                    <small>Versión del documento.</small>
+                </div>
 
-            <div className="mb-3">
-                <label className="form-label">Producto</label>
-                <select name="producto" className="form-select" value={formData.producto} onChange={handleChange}>
-                    <option value="">Seleccionar producto</option>
-                    {products.map(p => (
-                        <option key={p.id_producto_dato} value={p.id_producto_dato}>{p.nombre_producto_dato}</option>
-                    ))}
-                </select>
-            </div>
+                <div className="contract-form-group">
+                    <label htmlFor="estado" className="required">Estado</label>
+                    <select name="estado" id="estado" value={formData.estado} onChange={handleChange}>
+                        <option value="">Seleccione un estado...</option>
+                        <option value="Propuesto">Propuesto</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Obsolescente">Obsolescente</option>
+                        <option value="Jubilado">Jubilado</option>
+                    </select>
+                </div>
 
-            <div className="mb-3">
-                <label className="form-label">Responsable</label>
-                <input name="responsable" className="form-control" value={formData.responsable} onChange={handleChange} />
-            </div>
+                <div className="contract-form-group">
+                    <label htmlFor="dominio" className="required">Propietario</label>
+                    <select name="dominio" id="dominio" value={formData.dominio} onChange={handleChange}>
+                        <option value="">Seleccione equipo...</option>
+                        {domains.map(d => (
+                            <option key={d.id_dominio} value={d.id_dominio}>
+                                {d.nombre_dominio}
+                            </option>
+                        ))}
+                    </select>
+                    <small>Equipo responsable del contrato.</small>
+                </div>
 
-            <button className="btn btn-primary" disabled={loading} onClick={handleSubmit}>
-                + Agregar contrato de datos
-            </button>
+                <div className="contract-form-group">
+                    <label htmlFor="producto" className="required">Producto</label>
+                    <select name="producto" id="producto" value={formData.producto} onChange={handleChange}>
+                        <option value="">Seleccione producto...</option>
+                        {products.map(p => (
+                            <option key={p.id_producto_dato} value={p.id_producto_dato}>
+                                {p.nombre_producto_dato}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="contract-form-group">
+                    <label htmlFor="responsable" className="required">Responsable</label>
+                    <input name="responsable" id="responsable" value={formData.responsable} onChange={handleChange} />
+                </div>
+
+                {/* Descripción */}
+                <div className="description-section-container">
+                    <div className="description-info">
+                        <h4>Descripción</h4>
+                        <p>Objeto que contiene las descripciones adicionales.</p>
+                    </div>
+                    <div className="description-fields">
+                        <div className="mb-3">
+                            <label htmlFor="uso">Uso</label>
+                            <textarea
+                                name="uso"
+                                id="uso"
+                                className="form-control"
+                                placeholder="Describe el uso permitido de los datos"
+                                value={formData.uso}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="mb-3">
+                            <label htmlFor="proposito">Propósito</label>
+                            <textarea
+                                name="proposito"
+                                id="proposito"
+                                className="form-control"
+                                placeholder="Describe el propósito del contrato"
+                                value={formData.proposito}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="mb-3">
+                            <label htmlFor="limitaciones">Limitaciones</label>
+                            <textarea
+                                name="limitaciones"
+                                id="limitaciones"
+                                className="form-control"
+                                placeholder="Limitaciones legales, técnicas, etc."
+                                value={formData.limitaciones}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sección Esquema */}
+                <div className="schema-section-container">
+                    <div className="schema-info">
+                        <h4>Esquema</h4>
+                        <p>
+                            En esta sección se describe el esquema del contrato de datos. Es el soporte para la calidad de los datos, que se detalla en la siguiente sección.
+                            Schema admite tanto una representación empresarial de los datos como una implementación física. Permite unirlos entre sí.
+                        </p>
+                    </div>
+
+                    <div className="schema-fields">
+                        <div className="schema-grid">
+                            <div className="schema-col">
+                                <label>Nombre</label>
+                                <input type="text" placeholder="Nombre del elemento" disabled />
+                            </div>
+                            <div className="schema-col">
+                                <label>Nombre físico</label>
+                                <input type="text" placeholder="Nombre físico" disabled />
+                            </div>
+                            <div className="schema-col">
+                                <label>Tipo lógico</label>
+                                <input type="text" value="object" disabled />
+                            </div>
+                        </div>
+
+                        <div className="schema-description">
+                            <label>Descripción</label>
+                            <textarea placeholder="Descripción del esquema" disabled />
+                        </div>
+
+                        <div className="schema-properties">
+                            <h5>Propiedades</h5>
+                            <div className="schema-prop-row">
+                                <input type="text" placeholder="Nombre" disabled />
+                                <select disabled>
+                                    <option>cu</option>
+                                </select>
+                                <input type="text" placeholder="Tipo físico" disabled />
+                                <input type="text" placeholder="Descripción" disabled />
+                                <button className="disabled-btn" disabled>Calidad</button>
+                            </div>
+                            <button disabled className="disabled-btn">Agregar propiedad</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button className="add-contract-button" disabled={loading} onClick={handleSubmit}>
+                    + Agregar contrato de datos
+                </button>
+            </div>
         </div>
     );
 };

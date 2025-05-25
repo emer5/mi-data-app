@@ -1,0 +1,162 @@
+/* css/AddContractDetailsPage.css */
+
+.add-contract-page {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 30px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+    align-items: start;
+}
+
+.fundamentals-section {
+    padding-right: 20px;
+    border-right: 1px solid #e0e0e0;
+}
+
+.fundamentals-section h4,
+.description-info h4,
+.schema-info h4 {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.fundamentals-section p,
+.description-info p,
+.schema-info p {
+    font-size: 0.95em;
+    color: #666;
+}
+
+.contract-form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding-left: 1rem;
+}
+
+.contract-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.contract-form-group label {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.contract-form-group label.required::after {
+    content: " Obligatorio";
+    color: red;
+    font-size: 0.9em;
+}
+
+.contract-form-group input,
+.contract-form-group select,
+.contract-form-group textarea {
+    padding: 8px;
+    font-size: 1em;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.contract-form-group small {
+    font-size: 0.85em;
+    color: rgba(0, 0, 0, 0.55);
+    font-weight: 400;
+}
+
+.add-contract-button {
+    margin-top: 30px;
+    padding: 12px 25px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.add-contract-button:hover {
+    background-color: #0056b3;
+}
+
+.add-contract-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Descripción Extendida */
+.description-section-container {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 2rem;
+    gap: 2rem;
+}
+
+.description-info {
+    flex: 1;
+    max-width: 250px;
+    text-align: left;
+}
+
+.description-fields {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.schema-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.schema-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.schema-description textarea {
+    width: 100%;
+    height: 80px;
+    resize: none;
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.schema-properties h5 {
+    margin-top: 1rem;
+    font-weight: 600;
+}
+
+.schema-prop-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1.2fr 2fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.schema-prop-row input,
+.schema-prop-row select {
+    padding: 6px;
+    font-size: 0.9em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.disabled-btn {
+    padding: 6px 12px;
+    font-size: 0.9em;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+    color: #666;
+    border-radius: 4px;
+    cursor: not-allowed;
+}

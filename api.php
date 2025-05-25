@@ -341,57 +341,82 @@ try {
             $status_code = 200;
             break;
 
-        case 'add_contract':
-            if (
-                isset($request_data['id_producto_dato'], $request_data['id_dominio_consumidor'], $request_data['nombre_contrato_dato'])
-            ) {
-                $prod_id = (int) $request_data['id_producto_dato'];
-                $cons_id = (int) $request_data['id_dominio_consumidor'];
-                $nombre = mysqli_real_escape_string($conn, $request_data['nombre_contrato_dato']);
-                $desc_raw = $request_data['descripcion_contrato_dato'] ?? null;
-                $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
+case 'add_contract':
+    if (
+        isset($request_data['id_producto_dato'], $request_data['id_dominio_consumidor'], $request_data['nombre_contrato_dato'])
+    ) {
+        $prod_id = (int) $request_data['id_producto_dato'];
+        $cons_id = (int) $request_data['id_dominio_consumidor'];
+        $nombre = mysqli_real_escape_string($conn, $request_data['nombre_contrato_dato']);
+        $desc_raw = $request_data['descripcion_contrato_dato'] ?? null;
+        $desc = $desc_raw ? "'" . mysqli_real_escape_string($conn, $desc_raw) . "'" : "NULL";
 
-                // Evitar contratos entre un dominio y su propio producto
-                $check_owner_sql = "SELECT id_dominio_propietario FROM ProductoDato WHERE id_producto_dato = $prod_id";
-                $owner_result = mysqli_query($conn, $check_owner_sql);
-                if ($owner_row = mysqli_fetch_assoc($owner_result)) {
-                    // Antes bloqueaba contratos internos (propietario = consumidor).
-                    // Ahora permitimos contratos internos si el negocio lo necesita.
-                    // Si quieres registrar un log por seguridad, puedes dejar esto:
-                    if ($owner_row['id_dominio_propietario'] == $cons_id) {
-                        error_log("⚠️ Dominio está creando contrato para su propio producto (permitido).");
-                    }
+        // Nuevos campos
+        $uso_raw = $request_data['uso'] ?? null;
+        $proposito_raw = $request_data['proposito'] ?? null;
+        $limitaciones_raw = $request_data['limitaciones'] ?? null;
 
-                } else {
-                    throw new Exception("Producto no encontrado para validar propietario.");
-                }
+        $uso = $uso_raw ? "'" . mysqli_real_escape_string($conn, $uso_raw) . "'" : "NULL";
+        $proposito = $proposito_raw ? "'" . mysqli_real_escape_string($conn, $proposito_raw) . "'" : "NULL";
+        $limitaciones = $limitaciones_raw ? "'" . mysqli_real_escape_string($conn, $limitaciones_raw) . "'" : "NULL";
 
-                $sql = "INSERT INTO ContratoDato (id_producto_dato, id_dominio_consumidor, nombre_contrato_dato, descripcion_contrato_dato) 
-                VALUES ($prod_id, $cons_id, '$nombre', $desc)";
-
-                if (mysqli_query($conn, $sql)) {
-                    $response = ['message' => 'Contrato creado', 'id' => mysqli_insert_id($conn)];
-                    $status_code = 201;
-                } else {
-                    if (mysqli_errno($conn) == 1062) {
-                        throw new Exception('Ya existe un contrato para este producto y consumidor.');
-                    } else {
-                        throw new Exception(mysqli_error($conn));
-                    }
-                }
-            } else {
-                $missing_fields = [];
-                if (!isset($request_data['id_producto_dato']))
-                    $missing_fields[] = 'id_producto_dato';
-                if (!isset($request_data['id_dominio_consumidor']))
-                    $missing_fields[] = 'id_dominio_consumidor';
-                if (!isset($request_data['nombre_contrato_dato']))
-                    $missing_fields[] = 'nombre_contrato_dato';
-
-                $response = ['message' => 'Datos inválidos. Campos requeridos: ' . implode(', ', $missing_fields)];
-                $status_code = 400;
+        // Validación interna opcional
+        $check_owner_sql = "SELECT id_dominio_propietario FROM ProductoDato WHERE id_producto_dato = $prod_id";
+        $owner_result = mysqli_query($conn, $check_owner_sql);
+        if ($owner_row = mysqli_fetch_assoc($owner_result)) {
+            if ($owner_row['id_dominio_propietario'] == $cons_id) {
+                error_log("⚠️ Dominio está creando contrato para su propio producto (permitido).");
             }
-            break;
+        } else {
+            throw new Exception("Producto no encontrado para validar propietario.");
+        }
+
+$esquema_raw = $request_data['esquema'] ?? null;
+$esquema = $esquema_raw ? "'" . mysqli_real_escape_string($conn, $esquema_raw) . "'" : "NULL";
+
+$sql = "INSERT INTO ContratoDato (
+    id_producto_dato,
+    id_dominio_consumidor,
+    nombre_contrato_dato,
+    descripcion_contrato_dato,
+    uso,
+    proposito,
+    limitaciones,
+    esquema
+) VALUES (
+    $prod_id,
+    $cons_id,
+    '$nombre',
+    $desc,
+    $uso,
+    $proposito,
+    $limitaciones,
+    $esquema
+)";
+
+        if (mysqli_query($conn, $sql)) {
+            $response = ['message' => 'Contrato creado', 'id' => mysqli_insert_id($conn)];
+            $status_code = 201;
+        } else {
+            if (mysqli_errno($conn) == 1062) {
+                throw new Exception('Ya existe un contrato para este producto y consumidor.');
+            } else {
+                throw new Exception(mysqli_error($conn));
+            }
+        }
+    } else {
+        $missing_fields = [];
+        if (!isset($request_data['id_producto_dato']))
+            $missing_fields[] = 'id_producto_dato';
+        if (!isset($request_data['id_dominio_consumidor']))
+            $missing_fields[] = 'id_dominio_consumidor';
+        if (!isset($request_data['nombre_contrato_dato']))
+            $missing_fields[] = 'nombre_contrato_dato';
+
+        $response = ['message' => 'Datos inválidos. Campos requeridos: ' . implode(', ', $missing_fields)];
+        $status_code = 400;
+    }
+    break;
 
 
     }
