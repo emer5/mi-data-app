@@ -106,8 +106,9 @@ try {
 
                 $nombre = mysqli_real_escape_string($conn, trim($request_data['nombre_dominio']));
                 // Descripción puede ser opcional y NULL si está vacía
-                $desc_raw = $request_data['descripcion_dominio'] ?? null;
-                $desc = ($desc_raw !== null && trim($desc_raw) !== '') ? "'" . mysqli_real_escape_string($conn, trim($desc_raw)) . "'" : "NULL";
+               $desc_raw = $request_data['descripcion_dominio'] ?? null;
+                if ($desc_raw !== null && is_string($desc_raw) && trim($desc_raw) !== '') {$desc = "'" . mysqli_real_escape_string($conn, trim($desc_raw)) . "'";
+                } else {$desc = "NULL";}
 
                 $identificacion = mysqli_real_escape_string($conn, trim($request_data['identificacion_dominio']));
                 
@@ -193,11 +194,7 @@ try {
             // case 'delete_domain': // Este debería seguir funcionando igual.
 
             // ... (otros cases como get_products, add_product, etc. sin cambios) ...
-            default:
-                // ...
-                break;
-        }
-        case 'delete_domain':
+            case 'delete_domain':
             if (isset($request_data['id_dominio'])) {
                 $id = (int) $request_data['id_dominio'];
                 $sql = "DELETE FROM Dominio WHERE id_dominio = $id";
@@ -221,7 +218,8 @@ try {
                 $status_code = 400;
             }
             break;
-
+        }
+        
         // == PRODUCTOS ==
         case 'get_products':
             $sql = "SELECT pd.*, d.nombre_dominio as nombre_dominio_propietario FROM ProductoDato pd JOIN Dominio d ON pd.id_dominio_propietario = d.id_dominio ORDER BY pd.nombre_producto_dato";
