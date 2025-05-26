@@ -1,6 +1,6 @@
 import React from 'react';
 // Asegúrate que la interfaz Domain aquí sea la misma que en index.tsx (con los nuevos campos)
-import '/css/CreateDomainTeamPage.css';
+import '/css/CreateDomainPage.css';
 import { Domain, DomainFormProps } from '../index';
 
 interface DomainsPageProps {
@@ -25,34 +25,33 @@ const DomainsPage: React.FC<DomainsPageProps> = ({
 
     return (
         <div className="page-container">
-            {/* Puedes cambiar el título si ahora son "Dominios / Equipos" */}
-            <h2>Dominios / Equipos ({domains.length})</h2>
-            <button className="add-new" onClick={onAddNew} disabled={loading}>+ Nuevo</button>
+            <h2>Dominios ({domains.length})</h2> {/* Título simplificado */}
+            <button className="add-new" onClick={onAddNew} disabled={loading}>+ Nuevo Dominio</button>
 
             {showForm && (
                 <DomainFormComponent
-                    initialData={currentDomain}
-                    onSave={onSave}
-                    onCancel={onCancel}
-                    isLoading={loading}
-                    allDomains={domains} // <--- AÑADE ESTA LÍNEA (usa la prop 'domains' de DomainsPage)
+                   initialData={currentDomain}
+                   onSave={onSave}
+                   onCancel={onCancel}
+                   isLoading={loading}
+                   allDomains={domains} // Sigue siendo necesario para el dropdown de padre
                 />
             )}
 
-            {pageLoading && <div className="loading-message">Cargando...</div>}
+            {pageLoading && <div className="loading-message">Cargando dominios...</div>}
 
-            {!pageLoading && domains.length === 0 && !error && <p>No hay dominios/equipos creados.</p>}
+            {!pageLoading && domains.length === 0 && !error && <p>No hay dominios creados.</p>}
 
             {!pageLoading && domains.length > 0 && (
                 <ul>
                     {domains.map(domain => (
                         <li key={domain.id_dominio}>
                             <div>
-                                <strong>{domain.nombre_dominio}</strong> ({domain.tipo_entidad})
-                                {domain.identificacion_dominio && <small style={{ display: 'block', color: '#555' }}>ID: {domain.identificacion_dominio}</small>}
-                                {/* La descripción puede seguir siendo descripción_dominio */}
+                                <strong>{domain.nombre_dominio}</strong>
+                                {/* Mostrar identificación y dominio padre */}
+                                {domain.identificacion_dominio && <small style={{display: 'block', color: '#555'}}>ID: {domain.identificacion_dominio}</small>}
                                 <span>{domain.descripcion_dominio}</span>
-                                {domain.nombre_dominio_padre && <small style={{ display: 'block', color: '#777' }}>Principal: {domain.nombre_dominio_padre}</small>}
+                                {domain.nombre_dominio_padre && <small style={{display: 'block', color: '#777'}}>Principal: {domain.nombre_dominio_padre}</small>}
                             </div>
                             <div className="actions">
                                 <button className="edit" onClick={() => onEdit(domain)} disabled={loading}>E</button>

@@ -74,126 +74,129 @@ try {
     if ($request_data) {
         error_log("API recibió datos del cuerpo: " . json_encode($request_data));
     }
-
-
-    switch ($action) {
-        // == DOMINIOS ==
-        case 'get_domains':
-            // Modificamos la consulta para incluir el nombre del dominio padre
-            $sql = "SELECT d.*, dp.nombre_dominio as nombre_dominio_padre 
-                FROM Dominio d
-                LEFT JOIN Dominio dp ON d.id_dominio_padre = dp.id_dominio
-                ORDER BY d.nombre_dominio";
-            $result = mysqli_query($conn, $sql);
-            if (!$result)
-                throw new Exception("Error al obtener dominios: " . mysqli_error($conn));
-            $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
-            $status_code = 200;
-            break;
-
-        case 'add_domain':
-            // Validar nuevos campos
-            if (
-                !isset($request_data['nombre_dominio'], $request_data['descripcion_dominio'], $request_data['identificacion_dominio'], $request_data['tipo_entidad']) ||
-                empty(trim($request_data['nombre_dominio'])) ||
-                empty(trim($request_data['identificacion_dominio'])) ||
-                !in_array($request_data['tipo_entidad'], ['Dominio', 'Equipo'])
-                // Decide si mantienes la validación noContieneNumeros para nombre_dominio
-                // || !noContieneNumeros($request_data['nombre_dominio'])
-            ) {
-                $response = ['message' => 'Datos inválidos. Nombre, identificación y tipo son requeridos. Nombre no debe contener solo números.'];
-                $status_code = 400;
-                break;
-            }
-
-            $nombre = mysqli_real_escape_string($conn, trim($request_data['nombre_dominio']));
-            $desc = mysqli_real_escape_string($conn, trim($request_data['descripcion_dominio']));
-            $identificacion = mysqli_real_escape_string($conn, trim($request_data['identificacion_dominio']));
-            $tipo_entidad = mysqli_real_escape_string($conn, $request_data['tipo_entidad']);
-
-            // id_dominio_padre es opcional
-            $id_padre_val = $request_data['id_dominio_padre'] ?? null;
-            $id_padre = ($id_padre_val !== null && $id_padre_val !== '') ? (int) $id_padre_val : null;
-            $id_padre_sql = $id_padre === null ? "NULL" : $id_padre;
-
-            // Verificar unicidad de identificacion_dominio (la BD ya tiene UNIQUE constraint, pero es bueno chequear antes)
-            $check_ident_sql = "SELECT id_dominio FROM Dominio WHERE identificacion_dominio = '$identificacion'";
-            $check_ident_res = mysqli_query($conn, $check_ident_sql);
-            if (mysqli_num_rows($check_ident_res) > 0) {
-                throw new Exception("La identificación '$identificacion' ya existe.");
-            }
-
-            $sql = "INSERT INTO Dominio (nombre_dominio, descripcion_dominio, identificacion_dominio, id_dominio_padre, tipo_entidad) 
-                    VALUES ('$nombre', '$desc', '$identificacion', $id_padre_sql, '$tipo_entidad')";
-
-            if (mysqli_query($conn, $sql)) {
-                $response = ['message' => ucfirst($tipo_entidad) . ' creado', 'id' => mysqli_insert_id($conn)];
-                $status_code = 201;
-            } else {
-                if (mysqli_errno($conn) == 1062) { // Error de clave única (probablemente identificacion_dominio)
-                    throw new Exception("Error: La identificación '$identificacion' ya está en uso.");
+        switch ($action) {
+            // == DOMINIOS ==
+            case 'get_domains':
+                // La consulta para obtener dominios y el nombre de su dominio padre
+                $sql = "SELECT d.*, dp.nombre_dominio as nombre_dominio_padre 
+                        FROM Dominio d
+                        LEFT JOIN Dominio dp ON d.id_dominio_padre = dp.id_dominio
+                        ORDER BY d.nombre_dominio";
+                $result = mysqli_query($conn, $sql);
+                if (!$result) {
+                    throw new Exception("Error al obtener dominios: " . mysqli_error($conn));
                 }
-                throw new Exception("Error al crear: " . mysqli_error($conn));
-            }
-            break;
-
-        case 'update_domain':
-            if (
-                !isset($request_data['id_dominio'], $request_data['nombre_dominio'], $request_data['descripcion_dominio'], $request_data['identificacion_dominio'], $request_data['tipo_entidad']) ||
-                empty(trim($request_data['nombre_dominio'])) ||
-                empty(trim($request_data['identificacion_dominio'])) ||
-                !in_array($request_data['tipo_entidad'], ['Dominio', 'Equipo'])
-                // || !noContieneNumeros($request_data['nombre_dominio'])
-            ) {
-                $response = ['message' => 'Datos inválidos para actualizar. ID, nombre, identificación y tipo son requeridos.'];
-                $status_code = 400;
-                break;
-            }
-
-            $id = (int) $request_data['id_dominio'];
-            $nombre = mysqli_real_escape_string($conn, trim($request_data['nombre_dominio']));
-            $desc = mysqli_real_escape_string($conn, trim($request_data['descripcion_dominio']));
-            $identificacion = mysqli_real_escape_string($conn, trim($request_data['identificacion_dominio']));
-            $tipo_entidad = mysqli_real_escape_string($conn, $request_data['tipo_entidad']);
-
-            $id_padre_val = $request_data['id_dominio_padre'] ?? null;
-            $id_padre = ($id_padre_val !== null && $id_padre_val !== '') ? (int) $id_padre_val : null;
-
-            // Evitar que un dominio sea su propio padre
-            if ($id_padre !== null && $id_padre == $id) {
-                throw new Exception("Una entidad no puede ser su propio padre.");
-            }
-            $id_padre_sql = $id_padre === null ? "NULL" : $id_padre;
-
-            // Verificar unicidad de identificacion_dominio (excluyendo el registro actual)
-            $check_ident_sql = "SELECT id_dominio FROM Dominio WHERE identificacion_dominio = '$identificacion' AND id_dominio != $id";
-            $check_ident_res = mysqli_query($conn, $check_ident_sql);
-            if (mysqli_num_rows($check_ident_res) > 0) {
-                throw new Exception("La identificación '$identificacion' ya existe para otra entidad.");
-            }
-
-            $sql = "UPDATE Dominio SET 
-                        nombre_dominio = '$nombre', 
-                        descripcion_dominio = '$desc',
-                        identificacion_dominio = '$identificacion',
-                        id_dominio_padre = $id_padre_sql,
-                        tipo_entidad = '$tipo_entidad'
-                    WHERE id_dominio = $id";
-
-            if (mysqli_query($conn, $sql)) {
-                if (mysqli_affected_rows($conn) > 0) {
-                    $response = ['message' => ucfirst($tipo_entidad) . ' actualizado'];
-                } else {
-                    $response = ['message' => ucfirst($tipo_entidad) . ' no encontrado o datos sin cambios'];
-                }
+                $response = mysqli_fetch_all($result, MYSQLI_ASSOC);
                 $status_code = 200;
-            } else {
-                if (mysqli_errno($conn) == 1062) {
-                    throw new Exception("Error al actualizar: La identificación '$identificacion' ya está en uso.");
+                break;
+
+            case 'add_domain':
+                // Campos requeridos: nombre_dominio, identificacion_dominio. descripcion_dominio puede ser opcional.
+                if (
+                    !isset($request_data['nombre_dominio'], $request_data['identificacion_dominio']) ||
+                    empty(trim($request_data['nombre_dominio'])) ||
+                    empty(trim($request_data['identificacion_dominio']))
+                    // Quita la validación de noContieneNumeros si 'identificacion_dominio' puede tenerlos.
+                    // || !noContieneNumeros($request_data['nombre_dominio'])
+                ) {
+                    $response = ['message' => 'Datos inválidos. Nombre e identificación son requeridos.'];
+                    $status_code = 400;
+                    break;
                 }
-                throw new Exception("Error al actualizar: " . mysqli_error($conn));
-            }
-            break;
+
+                $nombre = mysqli_real_escape_string($conn, trim($request_data['nombre_dominio']));
+                // Descripción puede ser opcional y NULL si está vacía
+                $desc_raw = $request_data['descripcion_dominio'] ?? null;
+                $desc = ($desc_raw !== null && trim($desc_raw) !== '') ? "'" . mysqli_real_escape_string($conn, trim($desc_raw)) . "'" : "NULL";
+
+                $identificacion = mysqli_real_escape_string($conn, trim($request_data['identificacion_dominio']));
+                
+                $id_padre_val = $request_data['id_dominio_padre'] ?? null;
+                $id_padre_sql = ($id_padre_val !== null && $id_padre_val !== '') ? (int)$id_padre_val : "NULL";
+
+                // Verificar unicidad de identificacion_dominio
+                $check_ident_sql = "SELECT id_dominio FROM Dominio WHERE identificacion_dominio = '$identificacion'";
+                $check_ident_res = mysqli_query($conn, $check_ident_sql);
+                if (mysqli_num_rows($check_ident_res) > 0) {
+                    throw new Exception("La identificación '$identificacion' ya existe.");
+                }
+
+                $sql = "INSERT INTO Dominio (nombre_dominio, descripcion_dominio, identificacion_dominio, id_dominio_padre) 
+                        VALUES ('$nombre', $desc, '$identificacion', $id_padre_sql)";
+                
+                if (mysqli_query($conn, $sql)) {
+                    $response = ['message' => 'Dominio creado', 'id' => mysqli_insert_id($conn)];
+                    $status_code = 201;
+                } else {
+                    if (mysqli_errno($conn) == 1062) { // Error de clave única (probablemente identificacion_dominio)
+                        throw new Exception("Error: La identificación '$identificacion' ya está en uso.");
+                    }
+                    throw new Exception("Error al crear dominio: " . mysqli_error($conn));
+                }
+                break;
+
+            case 'update_domain':
+                if (
+                    !isset($request_data['id_dominio'], $request_data['nombre_dominio'], $request_data['identificacion_dominio']) ||
+                    empty(trim($request_data['nombre_dominio'])) ||
+                    empty(trim($request_data['identificacion_dominio']))
+                    // || !noContieneNumeros($request_data['nombre_dominio'])
+                ) {
+                    $response = ['message' => 'Datos inválidos para actualizar. ID, nombre e identificación son requeridos.'];
+                    $status_code = 400;
+                    break;
+                }
+
+                $id = (int) $request_data['id_dominio'];
+                $nombre = mysqli_real_escape_string($conn, trim($request_data['nombre_dominio']));
+                $desc_raw = $request_data['descripcion_dominio'] ?? null;
+                $desc = ($desc_raw !== null && trim($desc_raw) !== '') ? "'" . mysqli_real_escape_string($conn, trim($desc_raw)) . "'" : "NULL";
+                $identificacion = mysqli_real_escape_string($conn, trim($request_data['identificacion_dominio']));
+                
+                $id_padre_val = $request_data['id_dominio_padre'] ?? null;
+                // Asegurarse de que el id_padre no sea el mismo id del dominio que se está actualizando
+                if ($id_padre_val !== null && $id_padre_val !== '' && (int)$id_padre_val === $id) {
+                    throw new Exception("Un dominio no puede ser su propio padre.");
+                }
+                $id_padre_sql = ($id_padre_val !== null && $id_padre_val !== '') ? (int)$id_padre_val : "NULL";
+
+
+                // Verificar unicidad de identificacion_dominio (excluyendo el registro actual)
+                $check_ident_sql = "SELECT id_dominio FROM Dominio WHERE identificacion_dominio = '$identificacion' AND id_dominio != $id";
+                $check_ident_res = mysqli_query($conn, $check_ident_sql);
+                if (mysqli_num_rows($check_ident_res) > 0) {
+                    throw new Exception("La identificación '$identificacion' ya existe para otro dominio.");
+                }
+
+                $sql = "UPDATE Dominio SET 
+                            nombre_dominio = '$nombre', 
+                            descripcion_dominio = $desc,
+                            identificacion_dominio = '$identificacion',
+                            id_dominio_padre = $id_padre_sql
+                        WHERE id_dominio = $id";
+
+                if (mysqli_query($conn, $sql)) {
+                    if (mysqli_affected_rows($conn) > 0) {
+                        $response = ['message' => 'Dominio actualizado'];
+                    } else {
+                        $response = ['message' => 'Dominio no encontrado o datos sin cambios'];
+                    }
+                    $status_code = 200;
+                } else {
+                    if (mysqli_errno($conn) == 1062) {
+                        throw new Exception("Error al actualizar: La identificación '$identificacion' ya está en uso.");
+                    }
+                    throw new Exception("Error al actualizar dominio: " . mysqli_error($conn));
+                }
+                break;
+            
+            // case 'delete_domain': // Este debería seguir funcionando igual.
+
+            // ... (otros cases como get_products, add_product, etc. sin cambios) ...
+            default:
+                // ...
+                break;
+        }
         case 'delete_domain':
             if (isset($request_data['id_dominio'])) {
                 $id = (int) $request_data['id_dominio'];
