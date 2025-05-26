@@ -1,0 +1,49 @@
+/* css/ContractDetailPage.css */
+
+.contract-detail {
+    padding: 30px;
+}
+
+.contract-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contract-detail-header h2 {
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.contract-detail-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.contract-detail-buttons button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.contract-detail-buttons .edit-btn {
+    background-color: #f0ad4e;
+    color: #000;
+}
+
+.contract-detail-buttons .edit-btn:hover {
+    background-color: #e0a335;
+}
+
+.contract-detail-buttons .delete-btn {
+    background-color: #d9534f;
+    color: #fff;
+}
+
+.contract-detail-buttons .delete-btn:hover {
+    background-color: #c9302c;
+}

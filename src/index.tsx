@@ -12,6 +12,8 @@ import SelectProductTypePage from './pages/SelectProductTypePage';
 import AddProductDetailsPage from './pages/AddProductDetailsPage';
 import SelectContractTypePage from './pages/SelectContractTypePage'; // Nueva importación
 import AddContractDetailsPage from './pages/AddContractDetailsPage';   // Nueva importación
+import ContractDetailPage from './pages/ContractDetailPage'; // asegúrate de tener este archivo creado
+import EditContractPage from './pages/EditContractPage';
 import EditProductPage from './pages/EditProductPage';
 import Navbar from './components/Navbar';
 
@@ -411,8 +413,10 @@ const App: React.FC = () => {
                             />
                         }
                     />
-
-
+                    <Route path="/contratos/:id" element={<ContractDetailPage />}
+                    />
+                    <Route path="/contratos/editar/:id" element={<EditContractPage />} />
+                    
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
                 </Routes>

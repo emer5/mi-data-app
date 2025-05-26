@@ -20,23 +20,23 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
 }) => {
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
-        nombre: '',
-        identificacion: '',
-        version: '0.0.1',
-        estado: '',
-        dominio: '',
-        producto: '',
-        responsable: '',
-        uso: '',
-        proposito: '',
-        limitaciones: '',
-        esquema_nombre: '',
-        esquema_nombre_fisico: '',
-        esquema_tipo: 'object',
-        esquema_descripcion: ''
-    });
-
+const [formData, setFormData] = useState({
+    nombre: '',
+    identificacion: '',
+    version: '0.0.1',
+    estado: '',
+    dominio: '',
+    producto: '',
+    responsable: '',
+    uso: '',
+    proposito: '',
+    limitaciones: '',
+    esquema_nombre: '',
+    esquema_nombre_fisico: '',
+    esquema_tipo: 'object',
+    esquema_descripcion: '',
+    canal_soporte: '', // ✅ ¡Con coma!
+});
 
     const [error, setError] = useState<string | null>(null);
 
@@ -73,16 +73,17 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             descripcion: formData.esquema_descripcion
         });
 
-        const payload = {
-            id_producto_dato: parseInt(formData.producto),
-            id_dominio_consumidor: parseInt(formData.dominio),
-            nombre_contrato_dato: formData.nombre,
-            descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`,
-            uso: formData.uso,
-            proposito: formData.proposito,
-            limitaciones: formData.limitaciones,
-            esquema: esquemaJSON
-        };
+const payload = {
+    id_producto_dato: parseInt(formData.producto),
+    id_dominio_consumidor: parseInt(formData.dominio),
+    nombre_contrato_dato: formData.nombre,
+    descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`,
+    uso: formData.uso,
+    proposito: formData.proposito,
+    limitaciones: formData.limitaciones,
+    esquema: esquemaJSON, // ✅ coma agregada
+    canal_soporte: formData.canal_soporte
+};
 
 
         const success = await onSaveContract(payload);
@@ -293,6 +294,20 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                         </div>
                     </div>
                 </div>
+
+                <div className="contract-form-group">
+                    <label htmlFor="canal_soporte">Canal de soporte</label>
+                    <input
+                        type="text"
+                        id="canal_soporte"
+                        name="canal_soporte"
+                        value={formData.canal_soporte}
+                        onChange={handleChange}
+                        placeholder="Ej: soporte@miempresa.cl o canal de Slack"
+                    />
+                    <small>Contacto para soporte en caso de dudas del consumidor.</small>
+                </div>
+
 
                 <button className="add-contract-button" disabled={loading} onClick={handleSubmit}>
                     + Agregar contrato de datos

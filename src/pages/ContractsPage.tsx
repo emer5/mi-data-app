@@ -30,7 +30,9 @@ const ContractsPage: React.FC<ContractsPageProps> = ({ contracts, loading, error
                             <div className="contract-main">
                                 <div className="contract-icon">📜</div>
                                 <div className="contract-content">
-                                    <h3 className="contract-title-link">{contract.nombre_contrato_dato}</h3>
+                                    <Link to={`/contratos/${contract.id_contrato_dato}`}>
+                                        <h3>{contract.nombre_contrato_dato}</h3>
+                                    </Link>
                                     <div className="contract-subtitle">
                                         <span>📁 {contract.nombre_dominio_consumidor || 'Dominio N/D'}</span>
                                         <span className="status">🟢 activo</span>
