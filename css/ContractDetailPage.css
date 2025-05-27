@@ -1,7 +1,6 @@
-/* css/ContractDetailPage.css */
-
 .contract-detail {
-    padding: 30px;
+    padding: 2rem;
+    font-family: 'Segoe UI', sans-serif;
 }
 
 .contract-detail-header {
@@ -10,51 +9,31 @@
     align-items: center;
 }
 
-.contract-detail-header h2 {
-    font-size: 1.8rem;
-    margin: 0;
-}
-
-.contract-detail-buttons {
-    display: flex;
-    gap: 15px;
-}
-
 .contract-detail-buttons button {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    margin-left: 0.5rem;
 }
 
-.contract-detail-buttons .edit-btn {
-    background-color: #f0ad4e;
-    color: #000;
+.contract-detail-meta {
+    margin: 1rem 0;
 }
 
-.contract-detail-buttons .edit-btn:hover {
-    background-color: #e0a335;
+.contract-detail-section {
+    margin-top: 2rem;
 }
 
-.contract-detail-buttons .delete-btn {
-    background-color: #d9534f;
-    color: #fff;
-}
-
-.contract-detail-buttons .delete-btn:hover {
-    background-color: #c9302c;
-}
-
-.contract-detail-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    padding: 1rem;
-    font-size: 1rem;
-    background: #f9f9f9;
-    border-radius: 8px;
+.contract-db-table {
+    width: 100%;
+    border-collapse: collapse;
     margin-top: 1rem;
+}
+
+.contract-db-table th,
+.contract-db-table td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.contract-db-table th {
+    background-color: #f5f5f5;
 }

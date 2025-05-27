@@ -20,24 +20,25 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
 }) => {
     const navigate = useNavigate();
 
-const [formData, setFormData] = useState({
-    nombre: '',
-    identificacion: '',
-    version: '0.0.1',
-    estado: '',
-    dominio: '',
-    dominio_consumidor: '', // Nuevo campo
-    producto: '',
-    responsable: '',
-    uso: '',
-    proposito: '',
-    limitaciones: '',
-    esquema_nombre: '',
-    esquema_nombre_fisico: '',
-    esquema_tipo: 'object',
-    esquema_descripcion: '',
-    canal_soporte: '', // ✅ ¡Con coma!
-});
+    const [formData, setFormData] = useState({
+        nombre: '',
+        identificacion: '',
+        version: '0.0.1',
+        estado: '',
+        dominio: '',
+        dominio_transferencia: '', // Nuevo campo
+        producto: '',
+        responsable: '',
+        uso: '',
+        proposito: '',
+        limitaciones: '',
+        esquema_nombre: '',
+        esquema_nombre_fisico: '',
+        esquema_tipo: 'object',
+        esquema_descripcion: '',
+        canal_soporte: '',
+    });
+
 
     const [error, setError] = useState<string | null>(null);
 
@@ -56,6 +57,7 @@ const [formData, setFormData] = useState({
             'version',
             'estado',
             'dominio',
+            'dominio_transferencia', // <--- ahora obligatorio
             'producto',
             'responsable'
         ];
@@ -74,17 +76,18 @@ const [formData, setFormData] = useState({
             descripcion: formData.esquema_descripcion
         });
 
-const payload = {
-    id_producto_dato: parseInt(formData.producto),
-    id_dominio_consumidor: parseInt(formData.dominio),
-    nombre_contrato_dato: formData.nombre,
-    descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`,
-    uso: formData.uso,
-    proposito: formData.proposito,
-    limitaciones: formData.limitaciones,
-    esquema: esquemaJSON, // ✅ coma agregada
-    canal_soporte: formData.canal_soporte
-};
+        const payload = {
+            id_producto_dato: parseInt(formData.producto),
+            id_dominio_consumidor: parseInt(formData.dominio),
+            id_dominio_transferencia: parseInt(formData.dominio_transferencia),
+            nombre_contrato_dato: formData.nombre,
+            descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`,
+            uso: formData.uso,
+            proposito: formData.proposito,
+            limitaciones: formData.limitaciones,
+            esquema: esquemaJSON, // ✅ coma agregada
+            canal_soporte: formData.canal_soporte
+        };
 
 
         const success = await onSaveContract(payload);
@@ -136,31 +139,37 @@ const payload = {
                     </select>
                 </div>
 
-<div className="contract-form-group">
-    <label htmlFor="dominio" className="required">Propietario</label>
-    <select name="dominio" id="dominio" value={formData.dominio} onChange={handleChange}>
-        <option value="">Seleccione equipo...</option>
-        {domains.map(d => (
-            <option key={d.id_dominio} value={d.id_dominio}>
-                {d.nombre_dominio}
-            </option>
-        ))}
-    </select>
-    <small>Dominio propietario del producto.</small>
-</div>
+                <div className="contract-form-group">
+                    <label htmlFor="dominio" className="required">Propietario</label>
+                    <select name="dominio" id="dominio" value={formData.dominio} onChange={handleChange}>
+                        <option value="">Seleccione equipo...</option>
+                        {domains.map(d => (
+                            <option key={d.id_dominio} value={d.id_dominio}>
+                                {d.nombre_dominio}
+                            </option>
+                        ))}
+                    </select>
+                    <small>Dominio propietario del producto.</small>
+                </div>
 
-<div className="contract-form-group">
-    <label htmlFor="dominio_consumidor" className="required">Dominio consumidor</label>
-    <select name="dominio_consumidor" id="dominio_consumidor" value={formData.dominio_consumidor} onChange={handleChange}>
-        <option value="">Seleccione consumidor...</option>
-        {domains.map(d => (
-            <option key={d.id_dominio} value={d.id_dominio}>
-                {d.nombre_dominio}
-            </option>
-        ))}
-    </select>
-    <small>Dominio que recibe el producto a través del contrato.</small>
-</div>
+                <div className="contract-form-group">
+                    <label htmlFor="dominio_transferencia" className="required">Dominio de transferencia</label>
+                    <select
+                        name="dominio_transferencia"
+                        id="dominio_transferencia"
+                        value={formData.dominio_transferencia}
+                        onChange={handleChange}
+                    >
+                        <option value="">Seleccione dominio...</option>
+                        {domains.map(d => (
+                            <option key={d.id_dominio} value={d.id_dominio}>
+                                {d.nombre_dominio}
+                            </option>
+                        ))}
+                    </select>
+                    <small>Dominio al que se transfiere el producto (obligatorio).</small>
+                </div>
+
 
 
                 <div className="contract-form-group">
@@ -176,7 +185,7 @@ const payload = {
                 </div>
 
                 <div className="contract-form-group">
-                    <label htmlFor="responsable" className="required">Responsable</label>
+                    <label htmlFor="responsable" className="required">Arrendatario</label>
                     <input name="responsable" id="responsable" value={formData.responsable} onChange={handleChange} />
                 </div>
 

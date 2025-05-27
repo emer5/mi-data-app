@@ -352,7 +352,17 @@ try {
         case 'get_contract':
             if (isset($_GET['id'])) {
                 $id = (int) $_GET['id'];
-                $sql = "SELECT * FROM ContratoDato WHERE id_contrato_dato = $id";
+                $sql = "SELECT 
+                    cd.*, 
+                    d1.nombre_dominio AS nombre_dominio_consumidor, 
+                    d2.nombre_dominio AS nombre_dominio_transferencia,
+                    pd.nombre_producto_dato
+                FROM ContratoDato cd
+                LEFT JOIN Dominio d1 ON cd.id_dominio_consumidor = d1.id_dominio
+                LEFT JOIN Dominio d2 ON cd.id_dominio_transferencia = d2.id_dominio
+                LEFT JOIN ProductoDato pd ON cd.id_producto_dato = pd.id_producto_dato
+                WHERE cd.id_contrato_dato = $id";
+
                 $result = mysqli_query($conn, $sql);
                 if ($result && mysqli_num_rows($result) > 0) {
                     $response = mysqli_fetch_assoc($result);
@@ -367,6 +377,7 @@ try {
             }
             break;
 
+
         // Crear contrato
         case 'add_contract':
             if (
@@ -374,6 +385,7 @@ try {
             ) {
                 $prod_id = (int) $request_data['id_producto_dato'];
                 $cons_id = (int) $request_data['id_dominio_consumidor'];
+                $trans_id = isset($request_data['id_dominio_transferencia']) ? (int) $request_data['id_dominio_transferencia'] : null;
                 $nombre = mysqli_real_escape_string($conn, $request_data['nombre_contrato_dato']);
 
                 $desc = isset($request_data['descripcion_contrato_dato']) ? "'" . mysqli_real_escape_string($conn, $request_data['descripcion_contrato_dato']) . "'" : "NULL";
@@ -394,10 +406,10 @@ try {
                 }
 
                 $sql = "INSERT INTO ContratoDato (
-            id_producto_dato, id_dominio_consumidor, nombre_contrato_dato,
+            id_producto_dato, id_dominio_consumidor, id_dominio_transferencia, nombre_contrato_dato,
             descripcion_contrato_dato, uso, proposito, limitaciones, esquema, canal_soporte
         ) VALUES (
-            $prod_id, $cons_id, '$nombre',
+            $prod_id, $cons_id, " . ($trans_id ?? "NULL") . ", '$nombre',
             $desc, $uso, $proposito, $limitaciones, $esquema, $canal_soporte
         )";
 
@@ -405,11 +417,11 @@ try {
                     $response = ['message' => 'Contrato creado correctamente', 'id' => mysqli_insert_id($conn)];
                     $status_code = 201;
                 } else {
-                    if (mysqli_errno($conn) == 1062) {
-                        throw new Exception('Ya existe un contrato para este producto y consumidor.');
-                    } else {
-                        throw new Exception(mysqli_error($conn));
-                    }
+                    throw new Exception(
+                        mysqli_errno($conn) == 1062
+                        ? 'Ya existe un contrato para este producto y consumidor.'
+                        : mysqli_error($conn)
+                    );
                 }
             } else {
                 $missing_fields = [];
@@ -434,8 +446,9 @@ try {
             }
 
             $id_contrato = (int) $request_data['id_contrato_dato'];
-
+            $trans_id = isset($request_data['id_dominio_transferencia']) ? (int) $request_data['id_dominio_transferencia'] : null;
             $nombre = mysqli_real_escape_string($conn, $request_data['nombre_contrato_dato'] ?? '');
+
             $desc = isset($request_data['descripcion_contrato_dato']) ? "'" . mysqli_real_escape_string($conn, $request_data['descripcion_contrato_dato']) . "'" : "NULL";
             $uso = isset($request_data['uso']) ? "'" . mysqli_real_escape_string($conn, $request_data['uso']) . "'" : "NULL";
             $proposito = isset($request_data['proposito']) ? "'" . mysqli_real_escape_string($conn, $request_data['proposito']) . "'" : "NULL";
@@ -445,6 +458,7 @@ try {
 
             $sql = "UPDATE ContratoDato SET
         nombre_contrato_dato = '$nombre',
+        id_dominio_transferencia = " . ($trans_id ?? "NULL") . ",
         descripcion_contrato_dato = $desc,
         uso = $uso,
         proposito = $proposito,
@@ -454,31 +468,30 @@ try {
     WHERE id_contrato_dato = $id_contrato";
 
             if (mysqli_query($conn, $sql)) {
-                if (mysqli_affected_rows($conn) > 0) {
-                    $response = ['message' => 'Contrato actualizado exitosamente.'];
-                } else {
-                    $response = ['message' => 'Contrato no encontrado o sin cambios.'];
-                }
+                $response = [
+                    'message' => mysqli_affected_rows($conn) > 0
+                        ? 'Contrato actualizado exitosamente.'
+                        : 'Contrato no encontrado o sin cambios.'
+                ];
                 $status_code = 200;
             } else {
                 throw new Exception("Error al actualizar el contrato: " . mysqli_error($conn));
             }
             break;
 
-        // Eliminar contrato
+        // Eliminar contrato (sin cambios)
         case 'delete_contract':
             if (isset($request_data['id_contrato_dato'])) {
                 $id = (int) $request_data['id_contrato_dato'];
                 $sql = "DELETE FROM ContratoDato WHERE id_contrato_dato = $id";
                 $result = mysqli_query($conn, $sql);
                 if ($result) {
-                    if (mysqli_affected_rows($conn) > 0) {
-                        $response = ['message' => 'Contrato eliminado'];
-                        $status_code = 200;
-                    } else {
-                        $response = ['message' => 'Contrato no encontrado'];
-                        $status_code = 404;
-                    }
+                    $response = [
+                        'message' => mysqli_affected_rows($conn) > 0
+                            ? 'Contrato eliminado'
+                            : 'Contrato no encontrado'
+                    ];
+                    $status_code = mysqli_affected_rows($conn) > 0 ? 200 : 404;
                 } else {
                     throw new Exception("Error al eliminar el contrato: " . mysqli_error($conn));
                 }
