@@ -26,6 +26,7 @@ const [formData, setFormData] = useState({
     version: '0.0.1',
     estado: '',
     dominio: '',
+    dominio_consumidor: '', // Nuevo campo
     producto: '',
     responsable: '',
     uso: '',
@@ -135,18 +136,32 @@ const payload = {
                     </select>
                 </div>
 
-                <div className="contract-form-group">
-                    <label htmlFor="dominio" className="required">Propietario</label>
-                    <select name="dominio" id="dominio" value={formData.dominio} onChange={handleChange}>
-                        <option value="">Seleccione equipo...</option>
-                        {domains.map(d => (
-                            <option key={d.id_dominio} value={d.id_dominio}>
-                                {d.nombre_dominio}
-                            </option>
-                        ))}
-                    </select>
-                    <small>Equipo responsable del contrato.</small>
-                </div>
+<div className="contract-form-group">
+    <label htmlFor="dominio" className="required">Propietario</label>
+    <select name="dominio" id="dominio" value={formData.dominio} onChange={handleChange}>
+        <option value="">Seleccione equipo...</option>
+        {domains.map(d => (
+            <option key={d.id_dominio} value={d.id_dominio}>
+                {d.nombre_dominio}
+            </option>
+        ))}
+    </select>
+    <small>Dominio propietario del producto.</small>
+</div>
+
+<div className="contract-form-group">
+    <label htmlFor="dominio_consumidor" className="required">Dominio consumidor</label>
+    <select name="dominio_consumidor" id="dominio_consumidor" value={formData.dominio_consumidor} onChange={handleChange}>
+        <option value="">Seleccione consumidor...</option>
+        {domains.map(d => (
+            <option key={d.id_dominio} value={d.id_dominio}>
+                {d.nombre_dominio}
+            </option>
+        ))}
+    </select>
+    <small>Dominio que recibe el producto a través del contrato.</small>
+</div>
+
 
                 <div className="contract-form-group">
                     <label htmlFor="producto" className="required">Producto</label>

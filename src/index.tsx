@@ -146,14 +146,15 @@ const App: React.FC = () => {
     }, []);
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    const fetchContracts = async () => {
-        try {
-            const contractsData = await apiRequest<Contract[]>('get_contracts', 'GET');
-            setContracts(Array.isArray(contractsData) ? contractsData : []);
-        } catch (err) {
-            console.error("Error al recargar contratos:", err);
-        }
-    };
+const fetchContracts = async () => {
+  try {
+    const contractsData = await apiRequest<Contract[]>('get_contracts', 'GET');
+    setContracts(Array.isArray(contractsData) ? contractsData : []);
+  } catch (err) {
+    console.error("Error al recargar contratos:", err);
+  }
+};
+
 
 
     // --- Funciones CRUD Dominio (sin cambios) ---
@@ -423,8 +424,15 @@ const App: React.FC = () => {
                             />
                         }
                     />
-                    <Route path="/contratos/:id" element={<ContractDetailPage />}
+                    <Route
+                        path="/contratos/:id"
+                        element={
+                            <ContractDetailPage
+                                fetchContracts={fetchContracts}
+                            />
+                        }
                     />
+
                     <Route
                         path="/contratos/editar/:id"
                         element={
@@ -435,6 +443,7 @@ const App: React.FC = () => {
                             />
                         }
                     />
+
 
 
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />

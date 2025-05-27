@@ -38,6 +38,7 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                     version,
                     estado,
                     dominio: data.id_dominio_consumidor,
+                    dominio_transferencia: data.id_dominio_transferencia || '', // nuevo campo
                     producto: data.id_producto_dato,
                     responsable,
                     uso: data.uso || '',
@@ -79,6 +80,7 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
             id_contrato_dato: parseInt(id || '0'),
             id_producto_dato: parseInt(formData.producto),
             id_dominio_consumidor: parseInt(formData.dominio),
+            id_dominio_transferencia: parseInt(formData.dominio_transferencia || '0'),
             nombre_contrato_dato: formData.nombre,
             descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`,
             uso: formData.uso,
@@ -115,7 +117,6 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
 
     return (
         <div className="add-contract-page">
-            {/* Fundamentos */}
             <div className="fundamentals-section">
                 <h4>Editar Contrato</h4>
                 <p>Modifica los metadatos del contrato de datos.</p>
@@ -151,13 +152,24 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                 </div>
 
                 <div className="contract-form-group">
-                    <label htmlFor="dominio" className="required">Propietario</label>
+                    <label htmlFor="dominio" className="required">Dominio consumidor</label>
                     <select name="dominio" id="dominio" value={formData.dominio} onChange={handleChange}>
                         <option value="">Seleccione equipo...</option>
                         {domains.map(d => (
                             <option key={d.id_dominio} value={d.id_dominio}>{d.nombre_dominio}</option>
                         ))}
                     </select>
+                </div>
+
+                <div className="contract-form-group">
+                    <label htmlFor="dominio_transferencia">Dominio de transferencia</label>
+                    <select name="dominio_transferencia" id="dominio_transferencia" value={formData.dominio_transferencia} onChange={handleChange}>
+                        <option value="">Seleccione dominio destino...</option>
+                        {domains.map(d => (
+                            <option key={d.id_dominio} value={d.id_dominio}>{d.nombre_dominio}</option>
+                        ))}
+                    </select>
+                    <small>Dominio al que se transfiere el producto.</small>
                 </div>
 
                 <div className="contract-form-group">
@@ -175,7 +187,6 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                     <input name="responsable" id="responsable" value={formData.responsable} onChange={handleChange} />
                 </div>
 
-                {/* Descripción */}
                 <div className="description-section-container">
                     <div className="description-info">
                         <h4>Descripción</h4>
@@ -186,12 +197,10 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                             <label htmlFor="uso">Uso</label>
                             <textarea name="uso" id="uso" className="form-control" value={formData.uso} onChange={handleChange} />
                         </div>
-
                         <div className="mb-3">
                             <label htmlFor="proposito">Propósito</label>
                             <textarea name="proposito" id="proposito" className="form-control" value={formData.proposito} onChange={handleChange} />
                         </div>
-
                         <div className="mb-3">
                             <label htmlFor="limitaciones">Limitaciones</label>
                             <textarea name="limitaciones" id="limitaciones" className="form-control" value={formData.limitaciones} onChange={handleChange} />
@@ -199,7 +208,6 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                     </div>
                 </div>
 
-                {/* Sección Esquema */}
                 <div className="schema-section-container">
                     <div className="schema-info">
                         <h4>Esquema</h4>
@@ -211,18 +219,15 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                                 <label htmlFor="esquema_nombre">Nombre</label>
                                 <input type="text" name="esquema_nombre" value={formData.esquema_nombre} onChange={handleChange} />
                             </div>
-
                             <div className="schema-item">
                                 <label htmlFor="esquema_nombre_fisico">Nombre físico</label>
                                 <input type="text" name="esquema_nombre_fisico" value={formData.esquema_nombre_fisico} onChange={handleChange} />
                             </div>
-
                             <div className="schema-item">
                                 <label>Tipo lógico</label>
                                 <input type="text" value="object" disabled />
                             </div>
                         </div>
-
                         <div className="schema-description">
                             <label htmlFor="esquema_descripcion">Descripción</label>
                             <textarea name="esquema_descripcion" value={formData.esquema_descripcion} onChange={handleChange} />
@@ -232,14 +237,7 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
 
                 <div className="contract-form-group">
                     <label htmlFor="canal_soporte">Canal de soporte</label>
-                    <input
-                        type="text"
-                        id="canal_soporte"
-                        name="canal_soporte"
-                        value={formData.canal_soporte}
-                        onChange={handleChange}
-                        placeholder="Ej: soporte@miempresa.cl"
-                    />
+                    <input type="text" id="canal_soporte" name="canal_soporte" value={formData.canal_soporte} onChange={handleChange} placeholder="Ej: soporte@miempresa.cl" />
                 </div>
 
                 <button className="add-contract-button" disabled={loading} onClick={handleSubmit}>
