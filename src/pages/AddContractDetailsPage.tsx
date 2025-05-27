@@ -185,7 +185,7 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                 </div>
 
                 <div className="contract-form-group">
-                    <label htmlFor="responsable" className="required">Arrendatario</label>
+                    <label htmlFor="responsable" className="required">Responsable</label>
                     <input name="responsable" id="responsable" value={formData.responsable} onChange={handleChange} />
                 </div>
 
