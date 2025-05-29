@@ -13,6 +13,8 @@ import SelectProductTypePage from './pages/SelectProductTypePage';
 import AddProductDetailsPage from './pages/AddProductDetailsPage';
 import SelectContractTypePage from './pages/SelectContractTypePage'; // Nueva importación
 import AddContractDetailsPage from './pages/AddContractDetailsPage';   // Nueva importación
+import ContractDetailPage from './pages/ContractDetailPage'; // asegúrate de tener este archivo creado
+import EditContractPage from './pages/EditContractPage';
 import EditProductPage from './pages/EditProductPage';
 import Navbar from './components/Navbar';
 
@@ -144,6 +146,17 @@ const App: React.FC = () => {
         }
     }, []);
     useEffect(() => { fetchData(); }, [fetchData]);
+
+const fetchContracts = async () => {
+  try {
+    const contractsData = await apiRequest<Contract[]>('get_contracts', 'GET');
+    setContracts(Array.isArray(contractsData) ? contractsData : []);
+  } catch (err) {
+    console.error("Error al recargar contratos:", err);
+  }
+};
+
+
 
     // --- Funciones CRUD Dominio (sin cambios) ---
     const handleSaveDomain = async (domainData: Partial<Domain>): Promise<void> => {
@@ -433,6 +446,26 @@ const App: React.FC = () => {
                             />
                         }
                     />
+                    <Route
+                        path="/contratos/:id"
+                        element={
+                            <ContractDetailPage
+                                fetchContracts={fetchContracts}
+                            />
+                        }
+                    />
+
+                    <Route
+                        path="/contratos/editar/:id"
+                        element={
+                            <EditContractPage
+                                products={products}
+                                domains={domains}
+                                fetchContracts={fetchContracts}
+                            />
+                        }
+                    />
+
 
 
                     <Route path="*" element={<div className="page-container"><h2>404 - Página no encontrada</h2><p><Link to="/">Volver al inicio</Link></p></div>} />
