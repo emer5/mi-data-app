@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 import HomePage from './pages/HomePage';
 import DomainsPage from './pages/DomainsPage';
 import ProductsPage from './pages/ProductsPage';
+import MeshViewPage from './pages/MeshViewPage';
 import ContractsPage from './pages/ContractsPage'; // esta debe apuntar a TU nueva versión
 import SelectProductTypePage from './pages/SelectProductTypePage';
 import AddProductDetailsPage from './pages/AddProductDetailsPage';
@@ -359,12 +360,22 @@ const App: React.FC = () => {
                     } />
                     <Route path="/productos" element={
                         <ProductsPage
-                            products={products} domains={domains} loading={loading} error={error}
-                            onDelete={handleDeleteProduct} onConsume={handleOpenConsumeModal}
-                            showConsumeModal={showConsumeModal} productToConsume={productToConsume}
-                            consumingDomainId={consumingDomainId} contractName={contractName} contractDescription={contractDescription}
-                            onConsumingDomainChange={setConsumingDomainId} onContractNameChange={setContractName} onContractDescriptionChange={setContractDescription}
-                            onCreateContract={handleCreateContractFromModal} /* Cambiado para el modal */
+                            products={products}
+                            domains={domains} // ProductsPage sigue necesitando dominios para el modal de "Consumir" y la advertencia
+                            loading={loading}
+                            error={error}
+                            onDelete={handleDeleteProduct}
+                            onConsume={handleOpenConsumeModal} // Lógica del modal sigue en ProductsPage
+                            // ... (todas las props del modal de consumir)
+                            showConsumeModal={showConsumeModal}
+                            productToConsume={productToConsume}
+                            consumingDomainId={consumingDomainId}
+                            contractName={contractName}
+                            contractDescription={contractDescription}
+                            onConsumingDomainChange={setConsumingDomainId}
+                            onContractNameChange={setContractName}
+                            onContractDescriptionChange={setContractDescription}
+                            onCreateContract={handleCreateContractFromModal}
                             onCloseConsumeModal={handleCloseConsumeModal}
                             ConsumeProductModalComponent={ConsumeProductModal}
                         />
@@ -375,6 +386,17 @@ const App: React.FC = () => {
                             domains={domains}
                             onSaveProduct={handleAddProduct}
                             loading={loading}
+                        />
+                    } />
+
+                      {/* --- NUEVA RUTA PARA LA VISTA DE MALLA --- */}
+                    <Route path="/productos/malla" element={
+                        <MeshViewPage
+                            products={products}
+                            domains={domains}     // <--- PASAR DOMAINS
+                            contracts={contracts} // <--- PASAR CONTRACTS
+                            loading={loading}
+                            error={error}
                         />
                     } />
 

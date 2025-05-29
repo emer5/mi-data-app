@@ -286,3 +286,122 @@ form .form-actions button { margin-right: 10px; padding: 10px 15px; min-width: 8
     background-color: #555 !important;
 }
 */
+
+
+.mesh-view-container-rf {
+    width: 100%;
+    height: 600px; /* Ajusta la altura según necesites */
+    border: 1px solid #ddd;
+    margin-top: 20px;
+    background-color: #fcfcfc;
+}
+
+/* Estilos para el contenido de nuestro nodo personalizado (mesh-node-rf-content, etc.) */
+/* ... (ya los tenías definidos, asegúrate que se apliquen) ... */
+.mesh-node-rf-content {
+    padding: 10px 15px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mesh-node-rf-content .mesh-node-archetype {
+    font-size: 0.85em;
+    color: #555;
+    font-weight: bold;
+}
+
+.mesh-node-rf-content .mesh-node-name {
+    font-size: 1em;
+    font-weight: bold;
+    color: #222;
+    word-break: break-word;
+}
+
+.mesh-node-rf-content .mesh-node-domain {
+    font-size: 0.8em;
+    color: #666;
+}
+
+.react-flow__node-productNode {
+    background-color: #f8f9fa !important;
+    border: 1px solid #007bff !important;
+    border-radius: 8px !important;
+    min-width: 220px !important;
+    max-width: 280px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08) !important;
+    padding: 0 !important;
+}
+
+/* Estilo base para el contenido del nodo si no lo tienes ya más específico */
+.mesh-node-rf-content {
+    padding: 10px 15px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* Reducido un poco el gap */
+    min-width: 180px;
+    font-size: 0.9em;
+}
+.mesh-node-rf-content .mesh-node-type-text { /* Nuevo para el texto "Dominio", "Producto", etc. */
+    font-size: 0.75em;
+    color: #777;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    font-weight: 500;
+}
+.mesh-node-rf-content .mesh-node-name {
+    font-size: 1em;
+    font-weight: bold;
+    color: #222;
+    word-break: break-word;
+}
+.mesh-node-rf-content .mesh-node-domain,
+.mesh-node-rf-content small { /* Estilo para detalles más pequeños */
+    font-size: 0.8em;
+    color: #555;
+}
+.mesh-node-rf-content .mesh-node-archetype { /* Mantenido de antes para productos */
+    font-size: 0.85em;
+    color: #555;
+    font-weight: bold;
+}
+
+
+/* Estilos para los nodos de React Flow (principales) */
+.react-flow__node-productNode,
+.react-flow__node-domainNode,
+.react-flow__node-contractNode {
+    border-radius: 8px !important;
+    min-width: 200px !important; /* Ancho mínimo general */
+    max-width: 300px !important; /* Ancho máximo */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08) !important;
+    padding: 0 !important; /* Quitamos el padding por defecto para que nuestro contenido lo maneje */
+    /* background-color: #fff !important;  Color de fondo base */
+}
+
+/* Colores específicos por tipo de nodo */
+.react-flow__node-domainNode {
+    border: 2px solid #6f42c1 !important; /* Púrpura para Dominio */
+    background-color: #f2eefe !important;
+}
+.domain-node-color .mesh-node-name { /* Para el texto dentro del nodo */
+    color: #593699;
+}
+
+.react-flow__node-productNode { /* Ya lo tenías, ajusta si es necesario */
+    border: 2px solid #007bff !important; /* Azul para Producto */
+    background-color: #e6f2ff !important;
+}
+.product-node-color .mesh-node-name {
+    color: #0056b3;
+}
+
+.react-flow__node-contractNode {
+    border: 2px solid #20c997 !important; /* Verde azulado para Contrato */
+    background-color: #e9f9f4 !important;
+}
+.contract-node-color .mesh-node-name {
+    color: #17a278;
+}
