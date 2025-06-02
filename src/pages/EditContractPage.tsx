@@ -30,17 +30,15 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                 const identificacion = partes[0]?.replace('ID:', '').trim() || '';
                 const version = partes[1]?.replace('Versión:', '').trim() || '0.0.1';
                 const estado = partes[2]?.replace('Estado:', '').trim() || '';
-                const responsable = partes[3]?.replace('Responsable:', '').trim() || '';
 
                 setFormData({
                     nombre: data.nombre_contrato_dato,
                     identificacion,
                     version,
                     estado,
-                    dominio: data.id_dominio_consumidor,
-                    dominio_transferencia: data.id_dominio_transferencia || '', // nuevo campo
+                    dominio: data.id_dominio_transferencia,
+                    dominio_transferencia: data.id_dominio_consumidor || '',
                     producto: data.id_producto_dato,
-                    responsable,
                     uso: data.uso || '',
                     proposito: data.proposito || '',
                     limitaciones: data.limitaciones || '',
@@ -79,10 +77,10 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
         const payload = {
             id_contrato_dato: parseInt(id || '0'),
             id_producto_dato: parseInt(formData.producto),
-            id_dominio_consumidor: parseInt(formData.dominio),
-            id_dominio_transferencia: parseInt(formData.dominio_transferencia || '0'),
+            id_dominio_consumidor: parseInt(formData.dominio_transferencia || '0'),
+            id_dominio_transferencia: parseInt(formData.dominio),
             nombre_contrato_dato: formData.nombre,
-            descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`,
+            descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado}`,
             uso: formData.uso,
             proposito: formData.proposito,
             limitaciones: formData.limitaciones,
@@ -152,7 +150,7 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                 </div>
 
                 <div className="contract-form-group">
-                    <label htmlFor="dominio" className="required">Dominio consumidor</label>
+                    <label htmlFor="dominio" className="required">Dominio principal</label>
                     <select name="dominio" id="dominio" value={formData.dominio} onChange={handleChange}>
                         <option value="">Seleccione equipo...</option>
                         {domains.map(d => (
@@ -162,14 +160,14 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                 </div>
 
                 <div className="contract-form-group">
-                    <label htmlFor="dominio_transferencia">Dominio de transferencia</label>
+                    <label htmlFor="dominio_transferencia">Dominio consumidor</label>
                     <select name="dominio_transferencia" id="dominio_transferencia" value={formData.dominio_transferencia} onChange={handleChange}>
                         <option value="">Seleccione dominio destino...</option>
                         {domains.map(d => (
                             <option key={d.id_dominio} value={d.id_dominio}>{d.nombre_dominio}</option>
                         ))}
                     </select>
-                    <small>Dominio al que se transfiere el producto.</small>
+                    <small>Dominio que consume el contrato.</small>
                 </div>
 
                 <div className="contract-form-group">
@@ -180,11 +178,6 @@ const EditContractPage: React.FC<EditContractPageProps> = ({ products, domains, 
                             <option key={p.id_producto_dato} value={p.id_producto_dato}>{p.nombre_producto_dato}</option>
                         ))}
                     </select>
-                </div>
-
-                <div className="contract-form-group">
-                    <label htmlFor="responsable" className="required">Responsable</label>
-                    <input name="responsable" id="responsable" value={formData.responsable} onChange={handleChange} />
                 </div>
 
                 <div className="description-section-container">

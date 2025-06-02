@@ -66,74 +66,37 @@ const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ fetchContracts 
             <div className="contract-detail-header">
                 <h2>📝 {contract.nombre_contrato_dato}</h2>
                 <div className="contract-detail-buttons">
-                    <button className="edit-btn" onClick={handleEdit}>Editar contrato</button>
-                    <button className="delete-btn" onClick={handleDelete}>Eliminar contrato</button>
+                    <button className="btn btn-primary" onClick={handleEdit}>Editar contrato</button>
+                    <button className="btn btn-danger" onClick={handleDelete}>Eliminar contrato</button>
                 </div>
             </div>
 
-            <div className="contract-detail-meta">
-                <span className="badge bg-primary me-2">Versión: {contract.descripcion_contrato_dato?.split('|')[1]?.replace('Versión:', '').trim() || 'N/A'}</span>
-                <span className="badge bg-success me-2">Estado: {contract.descripcion_contrato_dato?.split('|')[2]?.replace('Estado:', '').trim() || 'N/A'}</span>
-                <span className="badge bg-secondary me-2">Responsable: {contract.descripcion_contrato_dato?.split('|')[3]?.replace('Responsable:', '').trim() || 'N/A'}</span>
-                <span className="badge bg-warning text-dark me-2">Dominio transferencia: {contract.nombre_dominio_transferencia || 'No especificado'}</span>
+            <div className="contract-detail-meta mt-3">
+                <span className="badge bg-primary me-2">
+                    Versión: {contract.descripcion_contrato_dato?.split('|')[1]?.replace('Versión:', '').trim() || 'N/A'}
+                </span>
+                <span className="badge bg-success me-2">
+                    Estado: {contract.descripcion_contrato_dato?.split('|')[2]?.replace('Estado:', '').trim() || 'N/A'}
+                </span>
+                <span className="badge bg-warning text-dark">
+                    Dominio consumidor: {contract.nombre_dominio_transferencia || 'No especificado'}
+                </span>
             </div>
 
-            <div className="contract-detail-section">
+            <div className="contract-detail-section mt-4">
                 <h4>🧾 Detalles del contrato</h4>
-                <ul>
-                    <li><strong>Uso:</strong> {contract.uso || "No especificado"}</li>
-                    <li><strong>Propósito:</strong> {contract.proposito || "No especificado"}</li>
-                    <li><strong>Limitaciones:</strong> {contract.limitaciones || "No especificado"}</li>
-                    <li><strong>Canal de soporte:</strong> {contract.canal_soporte || "No especificado"}</li>
-                </ul>
+                <p><strong>Uso:</strong> {contract.uso || "No especificado"}</p>
+                <p><strong>Propósito:</strong> {contract.proposito || "No especificado"}</p>
+                <p><strong>Limitaciones:</strong> {contract.limitaciones || "No especificado"}</p>
+                <p><strong>Canal de soporte:</strong> {contract.canal_soporte || "No especificado"}</p>
             </div>
 
             <div className="contract-detail-section">
                 <h4>📦 Esquema</h4>
-                <ul>
-                    <li><strong>Nombre:</strong> {contract.esquema.nombre || "No especificado"}</li>
-                    <li><strong>Nombre físico:</strong> {contract.esquema.nombre_fisico || "No especificado"}</li>
-                    <li><strong>Tipo lógico:</strong> {contract.esquema.tipo || "No especificado"}</li>
-                    <li><strong>Descripción:</strong> {contract.esquema.descripcion || "No especificado"}</li>
-                </ul>
-            </div>
-
-            <div className="contract-detail-section">
-                <h4>📊 Base de datos del contrato</h4>
-                <table className="contract-db-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Descripción</th>
-                            <th>Fecha creación</th>
-                            <th>Producto</th>
-                            <th>Dominio consumidor</th>
-                            <th>Dominio transferencia</th>
-                            <th>Uso</th>
-                            <th>Propósito</th>
-                            <th>Limitaciones</th>
-                            <th>Esquema</th>
-                            <th>Soporte</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{contract.id_contrato_dato}</td>
-                            <td>{contract.nombre_contrato_dato}</td>
-                            <td>{contract.descripcion_contrato_dato}</td>
-                            <td>{contract.fecha_de_creacion_contrato_dato}</td>
-                            <td>{contract.id_producto_dato}</td>
-                            <td>{contract.id_dominio_consumidor}</td>
-                            <td>{contract.id_dominio_transferencia || "N/A"}</td>
-                            <td>{contract.uso}</td>
-                            <td>{contract.proposito}</td>
-                            <td>{contract.limitaciones}</td>
-                            <td>{contract.esquema ? JSON.stringify(contract.esquema) : "N/A"}</td>
-                            <td>{contract.canal_soporte}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <p><strong>Nombre:</strong> {contract.esquema.nombre || "No especificado"}</p>
+                <p><strong>Nombre físico:</strong> {contract.esquema.nombre_fisico || "No especificado"}</p>
+                <p><strong>Tipo lógico:</strong> {contract.esquema.tipo || "No especificado"}</p>
+                <p><strong>Descripción:</strong> {contract.esquema.descripcion || "No especificado"}</p>
             </div>
         </div>
     );
