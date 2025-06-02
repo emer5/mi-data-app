@@ -26,9 +26,8 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
         version: '0.0.1',
         estado: '',
         dominio: '',
-        dominio_transferencia: '', // Nuevo campo
+        dominio_transferencia: '', // Nuevo campo (ahora "Dominio consumidor")
         producto: '',
-        responsable: '',
         uso: '',
         proposito: '',
         limitaciones: '',
@@ -38,7 +37,6 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
         esquema_descripcion: '',
         canal_soporte: '',
     });
-
 
     const [error, setError] = useState<string | null>(null);
 
@@ -56,10 +54,9 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             'identificacion',
             'version',
             'estado',
-            'dominio',
-            'dominio_transferencia', // <--- ahora obligatorio
-            'producto',
-            'responsable'
+            'dominio', // Dominio principal
+            'dominio_transferencia', // Dominio consumidor
+            'producto'
         ];
 
         for (const campo of camposObligatorios) {
@@ -81,14 +78,13 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
             id_dominio_consumidor: parseInt(formData.dominio),
             id_dominio_transferencia: parseInt(formData.dominio_transferencia),
             nombre_contrato_dato: formData.nombre,
-            descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado} | Responsable: ${formData.responsable}`,
+            descripcion_contrato_dato: `ID: ${formData.identificacion} | Versión: ${formData.version} | Estado: ${formData.estado}`,
             uso: formData.uso,
             proposito: formData.proposito,
             limitaciones: formData.limitaciones,
-            esquema: esquemaJSON, // ✅ coma agregada
+            esquema: esquemaJSON,
             canal_soporte: formData.canal_soporte
         };
-
 
         const success = await onSaveContract(payload);
         if (success) {
@@ -140,7 +136,7 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                 </div>
 
                 <div className="contract-form-group">
-                    <label htmlFor="dominio" className="required">Propietario</label>
+                    <label htmlFor="dominio" className="required">Dominio principal</label>
                     <select name="dominio" id="dominio" value={formData.dominio} onChange={handleChange}>
                         <option value="">Seleccione equipo...</option>
                         {domains.map(d => (
@@ -149,11 +145,11 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                             </option>
                         ))}
                     </select>
-                    <small>Dominio propietario del producto.</small>
+                    <small>Dominio principal que crea el contrato.</small>
                 </div>
 
                 <div className="contract-form-group">
-                    <label htmlFor="dominio_transferencia" className="required">Dominio de transferencia</label>
+                    <label htmlFor="dominio_transferencia" className="required">Dominio consumidor</label>
                     <select
                         name="dominio_transferencia"
                         id="dominio_transferencia"
@@ -167,10 +163,8 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                             </option>
                         ))}
                     </select>
-                    <small>Dominio al que se transfiere el producto (obligatorio).</small>
+                    <small>Dominio que consume el contrato de datos (obligatorio).</small>
                 </div>
-
-
 
                 <div className="contract-form-group">
                     <label htmlFor="producto" className="required">Producto</label>
@@ -182,11 +176,6 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                             </option>
                         ))}
                     </select>
-                </div>
-
-                <div className="contract-form-group">
-                    <label htmlFor="responsable" className="required">Responsable</label>
-                    <input name="responsable" id="responsable" value={formData.responsable} onChange={handleChange} />
                 </div>
 
                 {/* Descripción */}
@@ -331,7 +320,6 @@ const AddContractDetailsPage: React.FC<AddContractDetailsPageProps> = ({
                     />
                     <small>Contacto para soporte en caso de dudas del consumidor.</small>
                 </div>
-
 
                 <button className="add-contract-button" disabled={loading} onClick={handleSubmit}>
                     + Agregar contrato de datos
